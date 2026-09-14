@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Client/">
+    <Project Path="Client/Client/Bomber.Client.csproj" />
+  </Folder>
+  <Folder Name="/Server/">
+    <Project Path="Server/Application/Bomber.Application.csproj" />
+    <Project Path="Server/Domain/Bomber.Domain.csproj" />
+    <Project Path="Server/Host/Bomber.Host.csproj" />
+    <Project Path="Server/Infrastructure/Bomber.Infrastructure.csproj" />
+  </Folder>
+</Solution>
