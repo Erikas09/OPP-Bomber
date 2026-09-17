@@ -1,6 +1,22 @@
-var builder = WebApplication.CreateBuilder(args);
-var app = builder.Build();
+using Bomber.Application.Services;
+using Bomber.Host.Hubs;
 
-app.MapGet("/", () => "Hello World!");
+namespace Bomber.Host;
 
-app.Run();
+internal static class Startup
+{
+    internal static void Main(params string[] arguments)
+    {
+        var builder = WebApplication.CreateBuilder(arguments);
+
+        builder.Services.AddSignalR();
+
+        builder.Services.AddSingleton<GameStateService>();
+
+        WebApplication app = builder.Build();
+
+        app.MapHub<GameHub>("/game");
+
+        app.Run();
+    }
+}
