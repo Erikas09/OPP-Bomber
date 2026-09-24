@@ -1,4 +1,4 @@
-﻿using Bomber.Domain.Models;
+﻿using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services;
 

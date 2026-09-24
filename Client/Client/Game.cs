@@ -26,8 +26,7 @@ namespace Bomber.Client
 
             KeyPreview = true;
 
-            _serverConnection =
-                new GameServerConnection("https://localhost:7064");
+            _serverConnection = new GameServerConnection("https://localhost:7064");
 
             _serverConnection.PlayerAssigned += OnPlayerAssigned;
             _serverConnection.GameStateUpdated += OnGameStateUpdated;
@@ -150,8 +149,7 @@ namespace Bomber.Client
             }
             catch (Exception exception)
             {
-                Console.WriteLine(
-                    $"Failed to send movement: {exception.Message}");
+                Console.WriteLine($"Failed to send movement: {exception.Message}");
             }
             finally
             {
@@ -172,8 +170,7 @@ namespace Bomber.Client
 
             if (InvokeRequired)
             {
-                BeginInvoke(() =>
-                    OnGameStateUpdated(gameState));
+                BeginInvoke(() => OnGameStateUpdated(gameState));
 
                 return;
             }

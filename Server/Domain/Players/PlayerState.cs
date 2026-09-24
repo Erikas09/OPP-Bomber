@@ -1,4 +1,4 @@
-﻿namespace Bomber.Domain.Models;
+﻿namespace Bomber.Domain.Players;
 
 public sealed class PlayerState
 {
