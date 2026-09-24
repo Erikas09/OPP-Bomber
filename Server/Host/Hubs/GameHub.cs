@@ -43,8 +43,7 @@ public sealed class GameHub : Hub
     public override async Task OnDisconnectedAsync(
         Exception? exception)
     {
-        bool found =
-            _connections.Remove(Context.ConnectionId, out Guid playerId);
+        bool found = _connections.Remove(Context.ConnectionId, out Guid playerId);
 
         if (found)
         {
@@ -57,8 +56,7 @@ public sealed class GameHub : Hub
             exception);
     }
 
-    public async Task Move(
-        MoveRequest request)
+    public async Task Move(MoveRequest request)
     {
         bool found =
             _connections.TryGetPlayerId(
@@ -97,18 +95,13 @@ public sealed class GameHub : Hub
         await Clients.All.SendAsync("GameStateUpdated", response);
     }
 
-    private static List<MapCellResponse>
-        CreateMapCellResponses(Map map)
+    private static List<MapCellResponse> CreateMapCellResponses(Map map)
     {
         List<MapCellResponse> responses = [];
 
-        for (int x = 0;
-             x < map.Width;
-             x++)
+        for (int x = 0; x < map.Width; x++)
         {
-            for (int y = 0;
-                 y < map.Height;
-                 y++)
+            for (int y = 0; y < map.Height; y++)
             {
                 GridPosition position = new(x, y);
 
@@ -130,14 +123,11 @@ public sealed class GameHub : Hub
         return responses;
     }
 
-    private static List<SpawnPointResponse>
-        CreateSpawnPointResponses(
-            Map map)
+    private static List<SpawnPointResponse> CreateSpawnPointResponses(Map map)
     {
         List<SpawnPointResponse> responses = [];
 
-        foreach (SpawnPoint spawnPoint
-                 in map.SpawnPoints)
+        foreach (SpawnPoint spawnPoint in map.SpawnPoints)
         {
             SpawnPointResponse response =
                 new(
@@ -152,11 +142,9 @@ public sealed class GameHub : Hub
         return responses;
     }
 
-    private List<PlayerStateResponse>
-        CreatePlayerResponses()
+    private List<PlayerStateResponse> CreatePlayerResponses()
     {
-        List<Player> players =
-            _gameState.GetPlayers();
+        List<Player> players = _gameState.GetPlayers();
 
         List<PlayerStateResponse> responses = [];
 
@@ -182,8 +170,7 @@ public sealed class GameHub : Hub
         return responses;
     }
 
-    private static MapCellType GetMapCellType(
-        MapCell cell)
+    private static MapCellType GetMapCellType(MapCell cell)
     {
         if (cell is DestructibleWall)
             return MapCellType.DestructibleWall;

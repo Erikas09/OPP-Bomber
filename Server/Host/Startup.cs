@@ -13,6 +13,7 @@ internal static class Startup
         builder.Services.AddSignalR();
 
         builder.Services.AddApplication();
+
         builder.Services.AddSingleton<ConnectionRegistry>();
 
         WebApplication app = builder.Build();
