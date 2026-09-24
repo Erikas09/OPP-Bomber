@@ -1,5 +1,5 @@
 ﻿namespace Bomber.Domain.Common;
 
-public sealed class Position
-{
-}
+public record struct Position(
+    float X,
+    float Y);

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace Bomber.Domain.Games;
 
-namespace Bomber.Domain.Games
+public class Game
 {
-    internal class Game
-    {
-    }
 }
