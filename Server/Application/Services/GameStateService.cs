@@ -1,6 +1,7 @@
 ﻿using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
+using Bomber.Domain.Factories;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
@@ -158,71 +159,34 @@ public sealed class GameStateService
             15,
             13);
 
+        var classicFactory = new ClassicMapFactory();
+
+
         for (int x = 0; x < map.Width; x++)
         {
-            map.SetCell(
-                new IndestructibleWall(
-                    Guid.NewGuid(),
-                    new GridPosition(x, 0)));
-
-            map.SetCell(
-                new IndestructibleWall(
-                    Guid.NewGuid(),
-                    new GridPosition(
-                        x,
-                        map.Height - 1)));
+            map.SetCell(classicFactory.CreateIndestructibleWall(x, 0));
+            map.SetCell(classicFactory.CreateIndestructibleWall(x, map.Height - 1));
         }
 
         for (int y = 0; y < map.Height; y++)
         {
-            map.SetCell(
-                new IndestructibleWall(
-                    Guid.NewGuid(),
-                    new GridPosition(0, y)));
-
-            map.SetCell(
-                new IndestructibleWall(
-                    Guid.NewGuid(),
-                    new GridPosition(
-                        map.Width - 1,
-                        y)));
+            map.SetCell(classicFactory.CreateIndestructibleWall(0, y));
+            map.SetCell(classicFactory.CreateIndestructibleWall(map.Width - 1, y));
         }
 
         for (int x = 2; x < map.Width - 1; x += 2)
         {
             for (int y = 2; y < map.Height - 1; y += 2)
             {
-                map.SetCell(
-                    new IndestructibleWall(
-                        Guid.NewGuid(),
-                        new GridPosition(x, y)));
+                map.SetCell(classicFactory.CreateIndestructibleWall(x,y));
             }
         }
 
-        map.SetCell(
-            new DestructibleWall(
-                Guid.NewGuid(),
-                new GridPosition(3, 1)));
-
-        map.SetCell(
-            new DestructibleWall(
-                Guid.NewGuid(),
-                new GridPosition(4, 1)));
-
-        map.SetCell(
-            new DestructibleWall(
-                Guid.NewGuid(),
-                new GridPosition(5, 3)));
-
-        map.SetCell(
-            new DestructibleWall(
-                Guid.NewGuid(),
-                new GridPosition(7, 5)));
-
-        map.SetCell(
-            new DestructibleWall(
-                Guid.NewGuid(),
-                new GridPosition(9, 7)));
+        map.SetCell(classicFactory.CreateDestructibleWall(3, 1));
+        map.SetCell(classicFactory.CreateDestructibleWall(4, 1));
+        map.SetCell(classicFactory.CreateDestructibleWall(5, 3));
+        map.SetCell(classicFactory.CreateDestructibleWall(7, 5));
+        map.SetCell(classicFactory.CreateDestructibleWall(9, 7));
 
         map.AddSpawnPoint(
             new SpawnPoint(

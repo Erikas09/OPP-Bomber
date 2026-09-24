@@ -2,7 +2,7 @@
 
 namespace Bomber.Domain.Maps.Cells;
 
-public sealed class DestructibleWall : Wall
+public abstract class DestructibleWall : Wall
 {
     public DestructibleWall(
         Guid id,
@@ -10,6 +10,5 @@ public sealed class DestructibleWall : Wall
         : base(id, position)
     {
     }
-
     public override bool CanBeDestroyed => true;
 }

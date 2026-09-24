@@ -2,7 +2,7 @@
 
 namespace Bomber.Domain.Maps.Cells;
 
-public sealed class IndestructibleWall : Wall
+public abstract class IndestructibleWall : Wall
 {
     public IndestructibleWall(
         Guid id,
