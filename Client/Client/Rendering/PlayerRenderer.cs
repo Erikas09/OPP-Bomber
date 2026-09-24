@@ -22,5 +22,12 @@ public sealed class PlayerRenderer
             player.Y,
             PlayerSize,
             PlayerSize);
+
+        graphics.DrawString(
+        $"♥ {player.Lives}",
+        SystemFonts.DefaultFont,
+        Brushes.White,
+        player.X,
+        player.Y - 16);
     }
 }

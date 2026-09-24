@@ -11,6 +11,8 @@ public sealed class GameServerConnection
 
     public event Action<GameStateResponse>? GameStateUpdated;
 
+    public event Action<BombExplodedResponse>? BombExploded;
+
     public GameServerConnection(string serverUrl)
     {
         _connection = new HubConnectionBuilder()
@@ -21,6 +23,8 @@ public sealed class GameServerConnection
         _connection.On<Guid>("PlayerAssigned", OnPlayerAssigned);
 
         _connection.On<GameStateResponse>("GameStateUpdated", OnGameStateUpdated);
+
+        _connection.On<BombExplodedResponse>("BombExploded", OnBombExploded);
     }
 
     private void OnPlayerAssigned(Guid playerId)
@@ -48,5 +52,15 @@ public sealed class GameServerConnection
         MoveRequest request)
     {
         return _connection.InvokeAsync("Move", request);
+    }
+
+    public Task SendPlaceBombAsync()
+    {
+        return _connection.InvokeAsync("PlaceBomb");
+    }
+
+    private void OnBombExploded(BombExplodedResponse explosion)
+    {
+        BombExploded?.Invoke(explosion);
     }
 }

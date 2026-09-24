@@ -9,6 +9,7 @@ public partial class Game : Form
     private readonly GameServerConnection _serverConnection;
     private readonly ClientGameState _gameState;
     private readonly GameRenderer _renderer;
+    private readonly System.Windows.Forms.Timer _renderTimer = new() { Interval = 50 };
 
     private readonly System.Windows.Forms.Timer _inputTimer;
 
@@ -36,6 +37,8 @@ public partial class Game : Form
 
         _serverConnection.GameStateUpdated += OnGameStateUpdated;
 
+        _serverConnection.BombExploded += OnBombExploded;
+
         KeyDown += Game_KeyDown;
         KeyUp += Game_KeyUp;
 
@@ -50,6 +53,9 @@ public partial class Game : Form
         };
 
         _inputTimer.Tick += InputTimer_Tick;
+
+        _renderTimer.Tick += (_, _) => gamePanel.Invalidate();
+        _renderTimer.Start();
     }
 
     private async void Game_Shown(
@@ -105,6 +111,10 @@ public partial class Game : Form
 
             case Keys.D:
                 _right = false;
+                break;
+
+            case Keys.Space:
+                _ = PlaceBombAsync();
                 break;
         }
     }
@@ -176,5 +186,32 @@ public partial class Game : Form
         _inputTimer.Stop();
 
         await _serverConnection.DisconnectAsync();
+    }
+    private async Task PlaceBombAsync()
+    {
+        try
+        {
+            await _serverConnection.SendPlaceBombAsync();
+        }
+        catch
+        {
+            // ignoruojam - kitas tick vis tiek atnaujins state
+        }
+    }
+    private void OnBombExploded(BombExplodedResponse explosion)
+    {
+        if (IsDisposed)
+            return;
+
+        if (InvokeRequired)
+        {
+            BeginInvoke(() => OnBombExploded(explosion));
+
+            return;
+        }
+
+        _gameState.AddExplosion(explosion);
+
+        gamePanel.Invalidate();
     }
 }

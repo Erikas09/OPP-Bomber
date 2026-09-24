@@ -1,5 +1,6 @@
 ﻿using Bomber.Application.Models;
 using Bomber.Application.Services;
+using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
@@ -83,6 +84,7 @@ public sealed class GameHub : Hub
         List<MapCellResponse> cells = CreateMapCellResponses(map);
         List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
         List<PlayerStateResponse> players = CreatePlayerResponses();
+        List<BombResponse> bombs = CreateBombResponses();
 
         GameStateResponse response =
             new(
@@ -90,11 +92,32 @@ public sealed class GameHub : Hub
                 map.Height,
                 cells,
                 spawnPoints,
-                players);
+                players,
+                bombs);
 
         await Clients.All.SendAsync("GameStateUpdated", response);
     }
+    private List<BombResponse> CreateBombResponses()
+    {
+        List<Bomb> bombs = _gameState.GetBombs();
 
+        List<BombResponse> responses = [];
+
+        foreach (Bomb bomb in bombs)
+        {
+            BombResponse response =
+                new(
+                    bomb.Id,
+                    bomb.OwnerId,
+                    bomb.Position.X,
+                    bomb.Position.Y,
+                    bomb.Radius);
+
+            responses.Add(response);
+        }
+
+        return responses;
+    }
     private static List<MapCellResponse> CreateMapCellResponses(Map map)
     {
         List<MapCellResponse> responses = [];
@@ -179,5 +202,45 @@ public sealed class GameHub : Hub
             return MapCellType.IndestructibleWall;
 
         return MapCellType.Floor;
+    }
+    public async Task PlaceBomb()
+    {
+        bool found =
+            _connections.TryGetPlayerId(
+                Context.ConnectionId,
+                out Guid playerId);
+
+        if (!found)
+            return;
+
+        bool placed = _gameState.PlaceBomb(playerId, out Bomb? bomb);
+
+        if (!placed || bomb is null)
+            return;
+
+        await BroadcastGameState();
+
+        _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
+    }
+
+    private async Task ScheduleExplosion(
+    Guid bombId,
+    int fuseSeconds)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(fuseSeconds));
+
+        List<GridPosition> affectedCells = _gameState.ExplodeBomb(bombId);
+
+        if (affectedCells.Count > 0)
+        {
+            List<ExplosionCell> cells =
+                [.. affectedCells.Select(c => new ExplosionCell(c.X, c.Y))];
+
+            BombExplodedResponse explosion = new(bombId, cells);
+
+            await Clients.All.SendAsync("BombExploded", explosion);
+        }
+
+        await BroadcastGameState();
     }
 }

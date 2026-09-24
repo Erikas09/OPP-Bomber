@@ -5,4 +5,5 @@ public sealed record GameStateResponse(
     int MapHeight,
     List<MapCellResponse> Cells,
     List<SpawnPointResponse> SpawnPoints,
-    List<PlayerStateResponse> Players);
+    List<PlayerStateResponse> Players,
+    List<BombResponse> Bombs);

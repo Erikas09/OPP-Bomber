@@ -56,4 +56,17 @@ public class Player
 
         Position = position;
     }
+    public void TakeDamage()
+    {
+        if (State == PlayerState.Dead)
+            return;
+
+        Lives--;
+
+        if (Lives <= 0)
+        {
+            Lives = 0;
+            State = PlayerState.Dead;
+        }
+    }
 }

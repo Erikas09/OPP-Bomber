@@ -1,4 +1,5 @@
-﻿using Bomber.Domain.Common;
+﻿using Bomber.Domain.Bombs;
+using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
@@ -15,6 +16,7 @@ public sealed class GameStateService
     private readonly Lock _lock = new();
 
     private readonly Dictionary<Guid, Player> _players = [];
+    private readonly Dictionary<Guid, Bomb> _bombs = [];
 
     private readonly Map _map;
 
@@ -254,4 +256,139 @@ public sealed class GameStateService
 
         return map;
     }
+    public bool PlaceBomb(
+    Guid playerId,
+    out Bomb? bomb)
+    {
+        lock (_lock)
+        {
+            bomb = null;
+
+            bool found = _players.TryGetValue(playerId, out Player? player);
+
+            if (!found || player is null)
+                return false;
+
+            if (player.State == PlayerState.Dead)
+                return false;
+
+            int activeBombs = _bombs.Values.Count(b => b.OwnerId == playerId);
+
+            if (activeBombs >= player.BombLimit)
+                return false;
+
+            GridPosition position = GetPlayerGridPosition(player);
+
+            if (!_map.IsWalkable(position))
+                return false;
+
+            bool occupied = _bombs.Values.Any(b => b.Position == position);
+
+            if (occupied)
+                return false;
+
+            bomb = new Bomb(
+                Guid.NewGuid(),
+                playerId,
+                position,
+                player.ExplosionRadius,
+                fuseSeconds: 3);
+
+            _bombs.Add(bomb.Id, bomb);
+
+            return true;
+        }
+    }
+    private GridPosition GetPlayerGridPosition(Player player)
+    {
+        float centerX = player.Position.X + PlayerSize / 2f;
+        float centerY = player.Position.Y + PlayerSize / 2f;
+
+        int gridX = (int)(centerX / TileSize);
+        int gridY = (int)(centerY / TileSize);
+
+        return new GridPosition(gridX, gridY);
+    }
+    private List<GridPosition> ComputeExplosionCells(
+    GridPosition origin,
+    int radius)
+    {
+        List<GridPosition> cells = [origin];
+
+        (int dx, int dy)[] directions =
+        [
+            (0, -1),
+        (0, 1),
+        (-1, 0),
+        (1, 0),
+    ];
+
+        foreach ((int dx, int dy) in directions)
+        {
+            for (int step = 1; step <= radius; step++)
+            {
+                GridPosition current = new(
+                    origin.X + dx * step,
+                    origin.Y + dy * step);
+
+                if (!_map.IsInsideMap(current))
+                    break;
+
+                MapCell cell = _map.GetCell(current);
+
+                if (cell is IndestructibleWall)
+                    break;
+
+                cells.Add(current);
+
+                if (cell is DestructibleWall)
+                    break;
+            }
+        }
+
+        return cells;
+    }
+    public List<GridPosition> ExplodeBomb(Guid bombId)
+    {
+        lock (_lock)
+        {
+            bool found = _bombs.TryGetValue(bombId, out Bomb? bomb);
+
+            if (!found || bomb is null)
+                return [];
+
+            _bombs.Remove(bombId);
+
+            List<GridPosition> affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius);
+
+            foreach (GridPosition cell in affectedCells)
+                _map.DestroyWall(cell);
+
+            foreach (Player player in _players.Values)
+            {
+                if (player.State == PlayerState.Dead)
+                    continue;
+
+                GridPosition playerCell = GetPlayerGridPosition(player);
+
+                if (affectedCells.Contains(playerCell))
+                    player.TakeDamage();
+            }
+
+            return affectedCells;
+        }
+    }
+    public List<Bomb> GetBombsToExplode(DateTimeOffset now)
+    {
+        lock (_lock)
+            return [.. _bombs.Values.Where(b => b.ShouldExplode(now))];
+    }
+
+    public List<Bomb> GetBombs()
+    {
+        lock (_lock)
+            return [.. _bombs.Values];
+    }
+
+
 }

@@ -16,6 +16,9 @@ public sealed class ClientGameState
 
     public List<PlayerStateResponse> Players { get; private set; } = [];
 
+    public List<BombResponse> Bombs { get; private set; } = [];
+    private readonly List<(ExplosionCell Cell, DateTime ExpiresAt)> _activeExplosions = [];
+
     public void Apply(GameStateResponse response)
     {
         GameId = response.GameId;
@@ -25,5 +28,23 @@ public sealed class ClientGameState
         Cells = response.Cells;
         SpawnPoints = response.SpawnPoints;
         Players = response.Players;
+
+        Bombs = response.Bombs;
+    }
+    public void AddExplosion(BombExplodedResponse explosion)
+    {
+        DateTime expiresAt = DateTime.UtcNow.AddMilliseconds(400);
+
+        foreach (ExplosionCell cell in explosion.Cells)
+            _activeExplosions.Add((cell, expiresAt));
+    }
+
+    public List<ExplosionCell> GetActiveExplosionCells()
+    {
+        DateTime now = DateTime.UtcNow;
+
+        _activeExplosions.RemoveAll(e => e.ExpiresAt <= now);
+
+        return [.. _activeExplosions.Select(e => e.Cell)];
     }
 }
