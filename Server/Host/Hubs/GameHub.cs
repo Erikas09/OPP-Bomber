@@ -1,5 +1,11 @@
 ﻿using Bomber.Application.Models;
 using Bomber.Application.Services;
+using Bomber.Domain.Common;
+using Bomber.Domain.Enums;
+using Bomber.Domain.Maps;
+using Bomber.Domain.Maps.Cells;
+using Bomber.Domain.Players;
+using Bomber.Host.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Bomber.Host.Hubs;
@@ -7,19 +13,27 @@ namespace Bomber.Host.Hubs;
 public sealed class GameHub : Hub
 {
     private readonly GameStateService _gameState;
+    private readonly ConnectionRegistry _connections;
 
-    public GameHub(GameStateService gameState)
+    public GameHub(
+        GameStateService gameState,
+        ConnectionRegistry connections)
     {
         _gameState = gameState;
+        _connections = connections;
     }
 
     public override async Task OnConnectedAsync()
     {
-        _gameState.AddPlayer(Context.ConnectionId);
+        Guid playerId = Guid.NewGuid();
 
-        await Clients.Caller.SendAsync(
-            "PlayerAssigned",
-            Context.ConnectionId);
+        _connections.Add(Context.ConnectionId, playerId);
+
+        string playerName = $"Player {playerId.ToString()[..4]}";
+
+        _gameState.AddPlayer(playerId, playerName);
+
+        await Clients.Caller.SendAsync("PlayerAssigned", playerId);
 
         await BroadcastGameState();
 
@@ -29,17 +43,33 @@ public sealed class GameHub : Hub
     public override async Task OnDisconnectedAsync(
         Exception? exception)
     {
-        _gameState.RemovePlayer(Context.ConnectionId);
+        bool found =
+            _connections.Remove(Context.ConnectionId, out Guid playerId);
 
-        await BroadcastGameState();
+        if (found)
+        {
+            _gameState.RemovePlayer(playerId);
 
-        await base.OnDisconnectedAsync(exception);
+            await BroadcastGameState();
+        }
+
+        await base.OnDisconnectedAsync(
+            exception);
     }
 
-    public async Task Move(MoveRequest request)
+    public async Task Move(
+        MoveRequest request)
     {
+        bool found =
+            _connections.TryGetPlayerId(
+                Context.ConnectionId,
+                out Guid playerId);
+
+        if (!found)
+            return;
+
         _gameState.MovePlayer(
-            Context.ConnectionId,
+            playerId,
             request.Up,
             request.Down,
             request.Left,
@@ -50,21 +80,117 @@ public sealed class GameHub : Hub
 
     private async Task BroadcastGameState()
     {
-        var players = _gameState
-            .GetPlayers()
-            .Select(player =>
-                new PlayerStateResponse {
-                    Id = player.Id,
-                    X = player.X,
-                    Y = player.Y 
-                })
-            .ToList();
+        Map map = _gameState.GetMap();
 
-        await Clients.All.SendAsync(
-            "GameStateUpdated",
-            new GameStateResponse 
-            { 
-                Players = players
-            });
+        List<MapCellResponse> cells = CreateMapCellResponses(map);
+        List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
+        List<PlayerStateResponse> players = CreatePlayerResponses();
+
+        GameStateResponse response =
+            new(
+                map.Width,
+                map.Height,
+                cells,
+                spawnPoints,
+                players);
+
+        await Clients.All.SendAsync("GameStateUpdated", response);
+    }
+
+    private static List<MapCellResponse>
+        CreateMapCellResponses(Map map)
+    {
+        List<MapCellResponse> responses = [];
+
+        for (int x = 0;
+             x < map.Width;
+             x++)
+        {
+            for (int y = 0;
+                 y < map.Height;
+                 y++)
+            {
+                GridPosition position = new(x, y);
+
+                MapCell cell = map.GetCell(position);
+
+                MapCellType type = GetMapCellType(cell);
+
+                MapCellResponse response =
+                    new(
+                        cell.Id,
+                        cell.Position.X,
+                        cell.Position.Y,
+                        type);
+
+                responses.Add(response);
+            }
+        }
+
+        return responses;
+    }
+
+    private static List<SpawnPointResponse>
+        CreateSpawnPointResponses(
+            Map map)
+    {
+        List<SpawnPointResponse> responses = [];
+
+        foreach (SpawnPoint spawnPoint
+                 in map.SpawnPoints)
+        {
+            SpawnPointResponse response =
+                new(
+                    spawnPoint.Id,
+                    spawnPoint.Position.X,
+                    spawnPoint.Position.Y,
+                    spawnPoint.PlayerIndex);
+
+            responses.Add(response);
+        }
+
+        return responses;
+    }
+
+    private List<PlayerStateResponse>
+        CreatePlayerResponses()
+    {
+        List<Player> players =
+            _gameState.GetPlayers();
+
+        List<PlayerStateResponse> responses = [];
+
+        foreach (Player player in players)
+        {
+            bool isAlive = player.State == PlayerState.Alive;
+
+            PlayerStateResponse response =
+                new(
+                    player.Id,
+                    player.Name,
+                    player.Position.X,
+                    player.Position.Y,
+                    player.Lives,
+                    player.BombLimit,
+                    player.ExplosionRadius,
+                    player.Speed,
+                    isAlive);
+
+            responses.Add(response);
+        }
+
+        return responses;
+    }
+
+    private static MapCellType GetMapCellType(
+        MapCell cell)
+    {
+        if (cell is DestructibleWall)
+            return MapCellType.DestructibleWall;
+
+        if (cell is IndestructibleWall)
+            return MapCellType.IndestructibleWall;
+
+        return MapCellType.Floor;
     }
 }

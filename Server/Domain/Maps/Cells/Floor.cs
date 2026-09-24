@@ -1,12 +1,13 @@
-﻿namespace Bomber.Domain.Maps.Cells;
+﻿using Bomber.Domain.Common;
+
+namespace Bomber.Domain.Maps.Cells;
 
 public class Floor : MapCell
 {
     public Floor(
     Guid id,
-    int x,
-    int y)
-    : base(id, x, y)
+    GridPosition position)
+    : base(id, position)
     {
     }
 

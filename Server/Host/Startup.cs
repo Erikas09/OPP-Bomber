@@ -1,5 +1,6 @@
-using Bomber.Application.Services;
+using Bomber.Application;
 using Bomber.Host.Hubs;
+using Bomber.Host.Services;
 
 namespace Bomber.Host;
 
@@ -11,9 +12,12 @@ internal static class Startup
 
         builder.Services.AddSignalR();
 
-        builder.Services.AddSingleton<GameStateService>();
+        builder.Services.AddApplication();
+        builder.Services.AddSingleton<ConnectionRegistry>();
 
         WebApplication app = builder.Build();
+
+        app.MapGet("/", () => "Bomber server is running.");
 
         app.MapHub<GameHub>("/game");
 

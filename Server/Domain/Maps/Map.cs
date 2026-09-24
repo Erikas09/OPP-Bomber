@@ -1,18 +1,19 @@
-﻿using Bomber.Domain.Maps.Cells;
+﻿using Bomber.Domain.Common;
+using Bomber.Domain.Maps.Cells;
 
 namespace Bomber.Domain.Maps;
 
 public sealed class Map
 {
     private readonly MapCell[,] _cells;
+    private readonly List<SpawnPoint> _spawnPoints = [];
 
     public Guid Id { get; }
-
     public string Name { get; }
-
     public int Width { get; }
-
     public int Height { get; }
+
+    public List<SpawnPoint> SpawnPoints => _spawnPoints;
 
     public Map(
         Guid id,
@@ -20,37 +21,106 @@ public sealed class Map
         int width,
         int height)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+
         Id = id;
         Name = name;
         Width = width;
         Height = height;
 
         _cells = new MapCell[width, height];
+
+        InitializeFloor();
     }
 
-    public MapCell GetCell(int x, int y)
+    private void InitializeFloor()
     {
-        return _cells[x, y];
+        for (int x = 0; x < Width; x++)
+        {
+            for (int y = 0; y < Height; y++)
+            {
+                GridPosition position =  new(x, y);
+
+                _cells[x, y] = new Floor(
+                    Guid.NewGuid(),
+                    position);
+            }
+        }
     }
 
-    public void SetCell(int x, int y, MapCell cell)
+    public MapCell GetCell(
+        GridPosition position)
     {
-        _cells[x, y] = cell;
+        if (!IsInsideMap(position))
+            throw new ArgumentOutOfRangeException(nameof(position));
+
+        return _cells[position.X, position.Y];
     }
 
-    public bool IsWalkable(int x, int y)
+    public void SetCell(MapCell cell)
     {
-        if (!IsInsideMap(x, y))
+        if (!IsInsideMap(cell.Position))
+            throw new ArgumentOutOfRangeException(nameof(cell));
+
+        _cells[cell.Position.X, cell.Position.Y] = cell;
+    }
+
+    public bool IsWalkable(
+        GridPosition position)
+    {
+        if (!IsInsideMap(position))
             return false;
 
-        return _cells[x, y].IsWalkable;
+        return _cells[position.X, position.Y].IsWalkable;
     }
 
-    public bool IsInsideMap(int x, int y)
+    public bool IsInsideMap(
+        GridPosition position)
+    {
+        return IsInsideMap(position.X, position.Y);
+    }
+
+    public bool IsInsideMap(
+        int x,
+        int y)
     {
         return x >= 0 &&
                y >= 0 &&
                x < Width &&
                y < Height;
+    }
+
+    public void AddSpawnPoint(
+        SpawnPoint spawnPoint)
+    {
+        if (!IsInsideMap(spawnPoint.Position))
+            throw new ArgumentException("Spawn point must be inside the map.", nameof(spawnPoint));
+
+        _spawnPoints.Add(spawnPoint);
+    }
+
+    public SpawnPoint? GetSpawnPoint(
+        int playerIndex)
+    {
+        foreach (SpawnPoint spawnPoint in _spawnPoints)
+            if (spawnPoint.PlayerIndex == playerIndex)
+                return spawnPoint;
+
+        return null;
+    }
+
+    public void DestroyWall(
+        GridPosition position)
+    {
+        if (!IsInsideMap(position))
+            return;
+
+        MapCell cell = GetCell(position);
+
+        if (cell is not DestructibleWall)
+            return;
+
+        SetCell(new Floor(Guid.NewGuid(), position));
     }
 }

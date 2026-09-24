@@ -1,4 +1,6 @@
-﻿namespace Bomber.Client
+﻿using Bomber.Client.Controls;
+
+namespace Bomber.Client
 {
     partial class Game
     {
@@ -28,22 +30,22 @@
         /// </summary>
         private void InitializeComponent()
         {
-            gamePanel = new Panel();
+            gamePanel = new DoubleBufferedPanel();
             SuspendLayout();
             // 
             // gamePanel
             // 
-            gamePanel.Location = new Point(81, 36);
+            gamePanel.Location = new Point(12, 3);
             gamePanel.Name = "gamePanel";
-            gamePanel.Size = new Size(609, 333);
+            gamePanel.Size = new Size(1178, 683);
             gamePanel.TabIndex = 0;
-            gamePanel.Paint += this.GamePanel_Paint;
+            gamePanel.Paint += GamePanel_Paint;
             // 
             // Game
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(1193, 685);
             Controls.Add(gamePanel);
             Name = "Game";
             Text = "Bomber";

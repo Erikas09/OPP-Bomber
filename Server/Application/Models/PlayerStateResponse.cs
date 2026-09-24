@@ -1,8 +1,12 @@
 ﻿namespace Bomber.Application.Models;
 
-public sealed class PlayerStateResponse
-{
-    public required string Id { get; init; }
-    public required float X { get; init; }
-    public required float Y { get; init; }
-}
+public sealed record PlayerStateResponse(
+    Guid Id,
+    string Name,
+    float X,
+    float Y,
+    int Lives,
+    int BombLimit,
+    int ExplosionRadius,
+    float Speed,
+    bool IsAlive);

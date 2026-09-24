@@ -1,6 +1,9 @@
 ﻿namespace Bomber.Client.Models;
 
-public sealed class GameStateResponse
-{
-    public required List<PlayerStateResponse> Players { get; init; }
-}
+public sealed record GameStateResponse(
+    Guid GameId,
+    int MapWidth,
+    int MapHeight,
+    List<MapCellResponse> Cells,
+    List<SpawnPointResponse> SpawnPoints,
+    List<PlayerStateResponse> Players);

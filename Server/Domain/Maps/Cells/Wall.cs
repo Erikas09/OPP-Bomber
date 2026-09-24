@@ -6,9 +6,8 @@ public abstract class Wall : MapCell
 {
     protected Wall(
         Guid id,
-        int x,
-        int y)
-        : base(id, x, y)
+        GridPosition position)
+        : base(id, position)
     {
     }
 

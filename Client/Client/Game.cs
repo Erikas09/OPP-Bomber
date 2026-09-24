@@ -1,221 +1,180 @@
 ﻿using Bomber.Client.Models;
 using Bomber.Client.Network;
+using Bomber.Client.Rendering;
 
-namespace Bomber.Client
+namespace Bomber.Client;
+
+public partial class Game : Form
 {
-    public partial class Game : Form
+    private readonly GameServerConnection _serverConnection;
+    private readonly ClientGameState _gameState;
+    private readonly GameRenderer _renderer;
+
+    private readonly System.Windows.Forms.Timer _inputTimer;
+
+    private Guid? _localPlayerId;
+
+    private bool _up;
+    private bool _down;
+    private bool _left;
+    private bool _right;
+
+    private bool _sendingInput;
+
+    public Game()
     {
-        private const int PlayerSize = 30;
+        InitializeComponent();
 
-        private readonly GameServerConnection _serverConnection;
-        private readonly System.Windows.Forms.Timer _movementTimer;
+        KeyPreview = true;
 
-        private bool _up;
-        private bool _down;
-        private bool _left;
-        private bool _right;
+        _gameState = new ClientGameState();
+        _renderer = new GameRenderer();
 
-        private bool _sendingMovement;
+        _serverConnection = new GameServerConnection("https://localhost:7064");
 
-        private string? _localPlayerId;
-        private GameStateResponse? _gameState;
+        _serverConnection.PlayerAssigned += OnPlayerAssigned;
 
-        public Game()
+        _serverConnection.GameStateUpdated += OnGameStateUpdated;
+
+        KeyDown += Game_KeyDown;
+        KeyUp += Game_KeyUp;
+
+        gamePanel.Paint += GamePanel_Paint;
+
+        Shown += Game_Shown;
+        FormClosed += Game_FormClosed;
+
+        _inputTimer = new System.Windows.Forms.Timer
         {
-            InitializeComponent();
+            Interval = 50
+        };
 
-            KeyPreview = true;
+        _inputTimer.Tick += InputTimer_Tick;
+    }
 
-            _serverConnection = new GameServerConnection("https://localhost:7064");
+    private async void Game_Shown(
+        object? sender,
+        EventArgs e)
+    {
+        await _serverConnection.ConnectAsync();
 
-            _serverConnection.PlayerAssigned += OnPlayerAssigned;
-            _serverConnection.GameStateUpdated += OnGameStateUpdated;
+        _inputTimer.Start();
+    }
 
-            KeyDown += Game_KeyDown;
-            KeyUp += Game_KeyUp;
+    private void Game_KeyDown(
+        object? sender,
+        KeyEventArgs e)
+    {
+        switch (e.KeyCode)
+        {
+            case Keys.W:
+                _up = true;
+                break;
 
-            gamePanel.Paint += GamePanel_Paint;
+            case Keys.S:
+                _down = true;
+                break;
 
-            Shown += Game_Shown;
-            FormClosed += Game_FormClosed;
+            case Keys.A:
+                _left = true;
+                break;
 
-            _movementTimer = new System.Windows.Forms.Timer
-            {
-                Interval = 50
-            };
+            case Keys.D:
+                _right = true;
+                break;
+        }
+    }
 
-            _movementTimer.Tick += MovementTimer_Tick;
+    private void Game_KeyUp(
+        object? sender,
+        KeyEventArgs e)
+    {
+        switch (e.KeyCode)
+        {
+            case Keys.W:
+                _up = false;
+                break;
+
+            case Keys.S:
+                _down = false;
+                break;
+
+            case Keys.A:
+                _left = false;
+                break;
+
+            case Keys.D:
+                _right = false;
+                break;
+        }
+    }
+
+    private async void InputTimer_Tick(
+        object? sender,
+        EventArgs e)
+    {
+        if (_sendingInput)
+            return;
+
+        try
+        {
+            _sendingInput = true;
+
+            MoveRequest request =
+                new(
+                    _up,
+                    _down,
+                    _left,
+                    _right);
+
+            await _serverConnection.SendMovementAsync(request);
+        }
+        finally
+        {
+            _sendingInput = false;
+        }
+    }
+
+    private void OnPlayerAssigned(
+        Guid playerId)
+    {
+        _localPlayerId = playerId;
+    }
+
+    private void OnGameStateUpdated(
+        GameStateResponse response)
+    {
+        if (IsDisposed)
+            return;
+
+        if (InvokeRequired)
+        {
+            BeginInvoke(() => OnGameStateUpdated(response));
+
+            return;
         }
 
-        private async void Game_Shown(
-            object? sender,
-            EventArgs e)
-        {
-            try
-            {
-                await _serverConnection.ConnectAsync();
+        _gameState.Apply(response);
 
-                _movementTimer.Start();
-            }
-            catch (Exception exception)
-            {
-                MessageBox.Show(
-                    exception.ToString(),
-                    "Could not connect to server",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-        }
+        gamePanel.Invalidate();
+    }
 
-        private void Game_KeyDown(
-            object? sender,
-            KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.W:
-                    _up = true;
-                    break;
+    private void GamePanel_Paint(
+        object? sender,
+        PaintEventArgs e)
+    {
+        _renderer.Draw(
+            e.Graphics,
+            _gameState,
+            _localPlayerId);
+    }
 
-                case Keys.S:
-                    _down = true;
-                    break;
+    private async void Game_FormClosed(
+        object? sender,
+        FormClosedEventArgs e)
+    {
+        _inputTimer.Stop();
 
-                case Keys.A:
-                    _left = true;
-                    break;
-
-                case Keys.D:
-                    _right = true;
-                    break;
-            }
-        }
-
-        private void Game_KeyUp(
-            object? sender,
-            KeyEventArgs e)
-        {
-            switch (e.KeyCode)
-            {
-                case Keys.W:
-                    _up = false;
-                    break;
-
-                case Keys.S:
-                    _down = false;
-                    break;
-
-                case Keys.A:
-                    _left = false;
-                    break;
-
-                case Keys.D:
-                    _right = false;
-                    break;
-            }
-        }
-
-        private async void MovementTimer_Tick(
-            object? sender,
-            EventArgs e)
-        {
-            if (_sendingMovement)
-                return;
-
-            if (_localPlayerId is null)
-                return;
-
-            if (!_up &&
-                !_down &&
-                !_left &&
-                !_right)
-            {
-                return;
-            }
-
-            try
-            {
-                _sendingMovement = true;
-
-                MoveRequest request = new()
-                {
-                    Up = _up,
-                    Down = _down,
-                    Left = _left,
-                    Right = _right
-                };
-
-                await _serverConnection.SendMovementAsync(request);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine($"Failed to send movement: {exception.Message}");
-            }
-            finally
-            {
-                _sendingMovement = false;
-            }
-        }
-
-        private void OnPlayerAssigned(string playerId)
-        {
-            _localPlayerId = playerId;
-        }
-
-        private void OnGameStateUpdated(
-            GameStateResponse gameState)
-        {
-            if (IsDisposed)
-                return;
-
-            if (InvokeRequired)
-            {
-                BeginInvoke(() => OnGameStateUpdated(gameState));
-
-                return;
-            }
-
-            _gameState = gameState;
-
-            gamePanel.Invalidate();
-        }
-
-        private void GamePanel_Paint(
-            object? sender,
-            PaintEventArgs e)
-        {
-            if (_gameState is null)
-                return;
-
-            foreach (var player in _gameState.Players)
-            {
-                Brush brush =
-                    player.Id == _localPlayerId
-                        ? Brushes.Blue
-                        : Brushes.Red;
-
-                e.Graphics.FillRectangle(
-                    brush,
-                    player.X,
-                    player.Y,
-                    PlayerSize,
-                    PlayerSize);
-            }
-        }
-
-        private async void Game_FormClosed(
-            object? sender,
-            FormClosedEventArgs e)
-        {
-            _movementTimer.Stop();
-
-            try
-            {
-                await _serverConnection.DisconnectAsync();
-            }
-            catch
-            {
-            }
-        }
+        await _serverConnection.DisconnectAsync();
     }
 }

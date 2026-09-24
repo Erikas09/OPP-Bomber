@@ -6,9 +6,8 @@ public sealed class IndestructibleWall : Wall
 {
     public IndestructibleWall(
         Guid id,
-        int x,
-        int y)
-        : base(id, x, y)
+        GridPosition position)
+        : base(id, position)
     {
     }
 
