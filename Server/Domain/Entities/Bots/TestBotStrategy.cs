@@ -23,8 +23,10 @@ namespace Bomber.Domain.Entities.Bots
 
             if (strategy_updates >= STRATEGY_UPDATE_FREQUENCY)
             {
-                int directionX = rng.Next(3) - 3;
-                int directionY = rng.Next(3) - 3;
+                strategy_updates = 0;
+
+                int directionX = rng.Next(3) - 1;
+                int directionY = rng.Next(3) - 1;
 
                 bot.SetInput(new(directionY == 1, directionY == -1, directionX == 1, directionX == -1));
             }

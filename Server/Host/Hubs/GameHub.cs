@@ -57,7 +57,7 @@ public sealed class GameHub : Hub
             exception);
     }
 
-    public async Task Move(MoveRequest request)
+    public Task Move(MoveRequest request)
     {
         bool found =
             _connections.TryGetPlayerId(
@@ -65,16 +65,19 @@ public sealed class GameHub : Hub
                 out Guid playerId);
 
         if (!found)
-            return;
+            return Task.CompletedTask;
 
-        _gameState.MovePlayer(
-            playerId,
+        PlayerInput input = new(
             request.Up,
             request.Down,
             request.Left,
             request.Right);
 
-        await BroadcastGameState();
+        _gameState.SetPlayerInput(
+            playerId,
+            input);
+
+        return Task.CompletedTask;
     }
 
     private async Task BroadcastGameState()

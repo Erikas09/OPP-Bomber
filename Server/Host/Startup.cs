@@ -1,4 +1,5 @@
 using Bomber.Application;
+using Bomber.Application.Services;
 using Bomber.Host.Hubs;
 using Bomber.Host.Services;
 
@@ -15,6 +16,8 @@ internal static class Startup
         builder.Services.AddApplication();
 
         builder.Services.AddSingleton<ConnectionRegistry>();
+        builder.Services.AddSingleton<GameStateBroadcaster>();
+        builder.Services.AddSingleton<GameLoopRunner>();
 
         WebApplication app = builder.Build();
 
@@ -22,6 +25,24 @@ internal static class Startup
 
         app.MapHub<GameHub>("/game");
 
-        app.Run();
+        GameLoopRunner gameLoop =
+            app.Services.GetRequiredService<GameLoopRunner>();
+
+        using CancellationTokenSource cancellation =
+            new();
+
+        Task gameLoopTask = Task.Run(
+            () => gameLoop.Run(cancellation.Token));
+
+        try
+        {
+            app.Run();
+        }
+        finally
+        {
+            cancellation.Cancel();
+
+            gameLoopTask.GetAwaiter().GetResult();
+        }
     }
 }

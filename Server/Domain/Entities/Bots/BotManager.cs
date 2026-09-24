@@ -12,12 +12,14 @@ namespace Bomber.Domain.Entities.Bots
         Dictionary<Guid, Bot> bots = new();
         float strategy_updates = 0;
 
-        public void CreateBot(Position position)
+        public Bot CreateBot(Position position)
         {
             Bot bot = Create(position);
             bots.Add(bot.Id, bot);
 
             UpdateBotStrategy(bot);
+
+            return bot;
         }
 
         public void RemoveBot(Guid id)
@@ -27,7 +29,7 @@ namespace Bomber.Domain.Entities.Bots
 
         Bot Create(Position position)
         {
-            return new(Guid.NewGuid(), "Bot", position, 3, 1, 2, 3);
+            return new(Guid.NewGuid(), "Bot", position, 3, 1, 2, 120f);
         }
 
         public void Update()

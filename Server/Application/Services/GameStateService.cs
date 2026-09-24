@@ -1,16 +1,17 @@
 ﻿using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
+using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Factories;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
+using System.Diagnostics;
 
 namespace Bomber.Application.Services;
 
 public sealed class GameStateService
 {
-    private const float MovementStep = 5f;
     private const float PlayerSize = 30f;
     private const int TileSize = 40;
 
@@ -20,10 +21,23 @@ public sealed class GameStateService
     private readonly Dictionary<Guid, Bomb> _bombs = [];
 
     private readonly Map _map;
+    private readonly BotManager _botManager;
 
     public GameStateService()
     {
         _map = CreateTestMap();
+        _botManager = new BotManager();
+
+        for(int i = 0; i < 2; i++)
+        {
+            SpawnPoint spawnPoint = _map.SpawnPoints.ElementAt(_players.Count);
+
+            Position position = new(
+                spawnPoint.Position.X * TileSize,
+                spawnPoint.Position.Y * TileSize);
+
+            AddPlayer(_botManager.CreateBot(position));
+        }
     }
 
     public void AddPlayer(
@@ -36,7 +50,8 @@ public sealed class GameStateService
                 return;
 
             if (_players.Count >= _map.SpawnPoints.Count)
-                throw new InvalidOperationException("No spawn point is available.");
+                throw new InvalidOperationException(
+                    "No spawn point is available.");
 
             SpawnPoint spawnPoint =
                 _map.SpawnPoints.ElementAt(_players.Count);
@@ -54,10 +69,13 @@ public sealed class GameStateService
                 explosionRadius: 1,
                 speed: 120f);
 
-            _players.Add(
-                playerId,
-                player);
+            _players.Add(playerId, player);
         }
+    }
+
+    public void AddPlayer(Player player)
+    {
+        _players.Add(player.Id, player);
     }
 
     public void RemovePlayer(Guid playerId)
@@ -68,58 +86,41 @@ public sealed class GameStateService
         }
     }
 
-    public void MovePlayer(
+    public void SetPlayerInput(
         Guid playerId,
-        bool up,
-        bool down,
-        bool left,
-        bool right)
+        PlayerInput input)
     {
         lock (_lock)
         {
-            bool found = _players.TryGetValue(playerId, out Player? player);
-
-            if (!found || player is null)
+            if (!_players.ContainsKey(playerId))
                 return;
 
-            if (player.State == PlayerState.Dead)
-                return;
+            _players[playerId].SetInput(input);
+        }
+    }
 
-            float movementX = 0f;
-            float movementY = 0f;
+    public void Update(float deltaTime)
+    {
+        lock (_lock)
+        {
+            foreach (Player player in _players.Values)
+            {
+                if (player.State == PlayerState.Dead)
+                    continue;
 
-            if (up)
-                movementY -= MovementStep;
+                UpdatePlayer(player, player.Input, deltaTime);
+            }
 
-            if (down)
-                movementY += MovementStep;
-
-            if (left)
-                movementX -= MovementStep;
-
-            if (right)
-                movementX += MovementStep;
-
-            Position horizontalPosition = new(
-                player.Position.X + movementX,
-                player.Position.Y);
-
-            if (CanPlayerMoveTo(horizontalPosition))
-                player.MoveTo(horizontalPosition);
-
-            Position verticalPosition = new(
-                player.Position.X,
-                player.Position.Y + movementY);
-
-            if (CanPlayerMoveTo(verticalPosition))
-                player.MoveTo(verticalPosition);
+            _botManager.Update();
         }
     }
 
     public List<Player> GetPlayers()
     {
         lock (_lock)
+        {
             return [.. _players.Values];
+        }
     }
 
     public Map GetMap()
@@ -127,23 +128,89 @@ public sealed class GameStateService
         return _map;
     }
 
+    private void UpdatePlayer(
+        Player player,
+        PlayerInput input,
+        float deltaTime)
+    {
+        float movementX = 0f;
+        float movementY = 0f;
+
+        if (input.Up)
+            movementY -= 1f;
+
+        if (input.Down)
+            movementY += 1f;
+
+        if (input.Left)
+            movementX -= 1f;
+
+        if (input.Right)
+            movementX += 1f;
+
+        if (movementX == 0f && movementY == 0f)
+            return;
+
+        // Normalize diagonal movement.
+        float length = MathF.Sqrt(
+            movementX * movementX +
+            movementY * movementY);
+
+        movementX /= length;
+        movementY /= length;
+
+        float distance =
+            player.Speed * deltaTime;
+
+        movementX *= distance;
+        movementY *= distance;
+
+        // Resolve horizontal movement separately.
+        Position horizontalPosition = new(
+            player.Position.X + movementX,
+            player.Position.Y);
+
+        if (CanPlayerMoveTo(horizontalPosition))
+        {
+            player.MoveTo(horizontalPosition);
+        }
+
+        // Resolve vertical movement separately.
+        Position verticalPosition = new(
+            player.Position.X,
+            player.Position.Y + movementY);
+
+        if (CanPlayerMoveTo(verticalPosition))
+        {
+            player.MoveTo(verticalPosition);
+        }
+    }
+
     private bool CanPlayerMoveTo(Position position)
     {
-        int left = (int)(position.X / TileSize);
+        int left =
+            (int)(position.X / TileSize);
 
-        int right = (int)((position.X + PlayerSize - 1) / TileSize);
+        int right =
+            (int)((position.X + PlayerSize - 1) / TileSize);
 
-        int top = (int)(position.Y / TileSize);
+        int top =
+            (int)(position.Y / TileSize);
 
-        int bottom = (int)((position.Y + PlayerSize - 1) / TileSize);
+        int bottom =
+            (int)((position.Y + PlayerSize - 1) / TileSize);
 
-        GridPosition topLeft = new(left, top);
+        GridPosition topLeft =
+            new(left, top);
 
-        GridPosition topRight = new(right, top);
+        GridPosition topRight =
+            new(right, top);
 
-        GridPosition bottomLeft = new(left, bottom);
+        GridPosition bottomLeft =
+            new(left, bottom);
 
-        GridPosition bottomRight = new(right, bottom);
+        GridPosition bottomRight =
+            new(right, bottom);
 
         return _map.IsWalkable(topLeft)
             && _map.IsWalkable(topRight)
