@@ -21,6 +21,8 @@ public class Player
 
     public PlayerState State { get; private set; }
     public PlayerInput Input { get; private set; }
+    public float VelocityX { get; set; }
+    public float VelocityY { get; set; }
 
     public Player(
         Guid id,

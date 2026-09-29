@@ -7,6 +7,10 @@ namespace Bomber.Domain.Maps.Cells
 {
     public class IceFloor : Floor
     {
-        public IceFloor(Guid id, GridPosition position) : base(id, position) { }
+        public IceFloor(Guid id, GridPosition position) : base(id, position) 
+        {
+            walkingSpeedModifier = 1.5f;
+        }
+
     }
 }

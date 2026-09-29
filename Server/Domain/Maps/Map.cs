@@ -105,6 +105,9 @@ public sealed class Map
         if (cell is not DestructibleWall)
             return;
 
-        SetCell(new Floor(Guid.NewGuid(), position));
+        if (cell is ClassicDestructibleWall)
+            SetCell(new ClassicFloor(Guid.NewGuid(), position));
+        else
+            SetCell(new IceFloor(Guid.NewGuid(), position));
     }
 }

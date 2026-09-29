@@ -25,7 +25,7 @@ public sealed class GameStateService
 
     public GameStateService()
     {
-        _map = CreateTestMap(MapType.Ice);
+        _map = CreateTestMap(MapType.Classic);
         _botManager = new BotManager();
 
         for(int i = 0; i < 2; i++)
@@ -148,22 +148,41 @@ public sealed class GameStateService
         if (input.Right)
             movementX += 1f;
 
-        if (movementX == 0f && movementY == 0f)
-            return;
-
         // Normalize diagonal movement.
         float length = MathF.Sqrt(
             movementX * movementX +
             movementY * movementY);
 
-        movementX /= length;
-        movementY /= length;
+        if(length > 0f)
+        {
+            movementX /= length;
+            movementY /= length;
+        }
+        
+        float walkingSpeedModifier = 1;
+        MapCell cell = _map.GetCell(GetPlayerGridPosition(player));
 
-        float distance =
-            player.Speed * deltaTime;
+        if(cell is ClassicFloor floor)
+        {
+            walkingSpeedModifier = floor.walkingSpeedModifier;
+            float distance = player.Speed * deltaTime * walkingSpeedModifier;
 
-        movementX *= distance;
-        movementY *= distance;
+            movementX *= distance;
+            movementY *= distance;
+        }
+        else if(cell is IceFloor ifloor)
+        {
+            walkingSpeedModifier = ifloor.walkingSpeedModifier;
+            float targetVelocityX = movementX * player.Speed * walkingSpeedModifier;
+            float targetVelocityY = movementY * player.Speed * walkingSpeedModifier;
+
+            float maxDelta = 2 * deltaTime;
+            player.VelocityX = MoveToward(player.VelocityX, targetVelocityX, maxDelta * player.Speed);
+            player.VelocityY = MoveToward(player.VelocityY, targetVelocityY, maxDelta * player.Speed);
+
+            movementX = player.VelocityX * deltaTime;
+            movementY = player.VelocityY * deltaTime;
+        }
 
         // Resolve horizontal movement separately.
         Position horizontalPosition = new(
@@ -174,6 +193,8 @@ public sealed class GameStateService
         {
             player.MoveTo(horizontalPosition);
         }
+        else
+            player.VelocityX = 0f;
 
         // Resolve vertical movement separately.
         Position verticalPosition = new(
@@ -184,6 +205,15 @@ public sealed class GameStateService
         {
             player.MoveTo(verticalPosition);
         }
+        else
+            player.VelocityY = 0f;
+    }
+    private static float MoveToward(float current, float target, float maxDelta)
+    {
+        float diff = target - current;
+        if (MathF.Abs(diff) <= maxDelta)
+            return target;
+        return current + MathF.Sign(diff) * maxDelta;
     }
 
     private bool CanPlayerMoveTo(Position position)
