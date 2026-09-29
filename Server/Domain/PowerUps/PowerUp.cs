@@ -1,5 +1,6 @@
 ﻿namespace Bomber.Domain.PowerUps;
 
-public class PowerUp
+public abstract class PowerUp : PowerUpPrototype
 {
+    public abstract PowerUpPrototype Clone();
 }
