@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Bomber.Domain.Maps.Cells
 {
-    internal class ClassicFloor : Floor
+    public class ClassicFloor : Floor
     {
         public ClassicFloor(Guid id, GridPosition position) : base(id, position) { }
     }

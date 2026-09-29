@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Bomber.Domain.Factories
 {
-    internal class IceMapFactory : IMapFactory
+    public class IceMapFactory : IMapFactory
     {
         public DestructibleWall CreateDestructibleWall(int x, int y)
         {

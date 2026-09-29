@@ -149,15 +149,23 @@ public sealed class GameStateBroadcaster
         return responses;
     }
 
-    private static MapCellType GetMapCellType(
-        MapCell cell)
+    private static MapCellType GetMapCellType(MapCell cell)
     {
-        if (cell is DestructibleWall)
+        if (cell is ClassicDestructibleWall)
             return MapCellType.DestructibleWall;
 
-        if (cell is IndestructibleWall)
+        if (cell is ClassicIndestructibleWall)
             return MapCellType.IndestructibleWall;
 
-        return MapCellType.Floor;
+        if (cell is ClassicFloor)
+            return MapCellType.Floor;
+
+        if (cell is IceDestructibleWall)
+            return MapCellType.IceDestructibleWall;
+
+        if (cell is IceIndestructibleWall)
+            return MapCellType.IceIndestructibleWall;
+
+        return MapCellType.IceFloor;
     }
 }

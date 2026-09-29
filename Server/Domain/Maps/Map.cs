@@ -31,22 +31,6 @@ public sealed class Map
 
         _cells = new MapCell[width, height];
 
-        InitializeFloor();
-    }
-
-    private void InitializeFloor()
-    {
-        for (int x = 0; x < Width; x++)
-        {
-            for (int y = 0; y < Height; y++)
-            {
-                GridPosition position =  new(x, y);
-
-                _cells[x, y] = new Floor(
-                    Guid.NewGuid(),
-                    position);
-            }
-        }
     }
 
     public MapCell GetCell(

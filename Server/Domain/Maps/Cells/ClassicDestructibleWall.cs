@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Bomber.Domain.Maps.Cells
 {
-    internal class ClassicDestructibleWall : DestructibleWall
+    public class ClassicDestructibleWall : DestructibleWall
     {
         public ClassicDestructibleWall(Guid id, GridPosition position) : base(id, position) { }
     }

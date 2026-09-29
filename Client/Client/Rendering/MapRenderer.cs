@@ -37,6 +37,9 @@ public sealed class MapRenderer
             MapCellType.Floor => Brushes.LightGray,
             MapCellType.DestructibleWall => Brushes.SaddleBrown,
             MapCellType.IndestructibleWall => Brushes.DarkGray,
+            MapCellType.IceFloor => Brushes.LightSkyBlue,
+            MapCellType.IceDestructibleWall => Brushes.SlateBlue,
+            MapCellType.IceIndestructibleWall => Brushes.DodgerBlue,
             _ => Brushes.Magenta,
         };
     }

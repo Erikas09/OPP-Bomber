@@ -25,7 +25,7 @@ public sealed class GameStateService
 
     public GameStateService()
     {
-        _map = CreateTestMap();
+        _map = CreateTestMap(MapType.Ice);
         _botManager = new BotManager();
 
         for(int i = 0; i < 2; i++)
@@ -218,7 +218,13 @@ public sealed class GameStateService
             && _map.IsWalkable(bottomRight);
     }
 
-    private static Map CreateTestMap()
+    private enum MapType
+    {
+        Classic,
+        Ice
+    }
+
+    private static Map CreateTestMap(MapType type)
     {
         Map map = new(
             Guid.NewGuid(),
@@ -226,34 +232,47 @@ public sealed class GameStateService
             15,
             13);
 
-        var classicFactory = new ClassicMapFactory();
+        IMapFactory factory;
 
+        if(type == MapType.Classic)
+            factory = new ClassicMapFactory();
+        else
+            factory = new IceMapFactory();
+        
 
         for (int x = 0; x < map.Width; x++)
         {
-            map.SetCell(classicFactory.CreateIndestructibleWall(x, 0));
-            map.SetCell(classicFactory.CreateIndestructibleWall(x, map.Height - 1));
+            for (int y = 0; y < map.Height; y++)
+            {
+                map.SetCell(factory.CreateFloor(x, y));
+            }
+        }
+
+        for (int x = 0; x < map.Width; x++)
+        {
+            map.SetCell(factory.CreateIndestructibleWall(x, 0));
+            map.SetCell(factory.CreateIndestructibleWall(x, map.Height - 1));
         }
 
         for (int y = 0; y < map.Height; y++)
         {
-            map.SetCell(classicFactory.CreateIndestructibleWall(0, y));
-            map.SetCell(classicFactory.CreateIndestructibleWall(map.Width - 1, y));
+            map.SetCell(factory.CreateIndestructibleWall(0, y));
+            map.SetCell(factory.CreateIndestructibleWall(map.Width - 1, y));
         }
 
         for (int x = 2; x < map.Width - 1; x += 2)
         {
             for (int y = 2; y < map.Height - 1; y += 2)
             {
-                map.SetCell(classicFactory.CreateIndestructibleWall(x,y));
+                map.SetCell(factory.CreateIndestructibleWall(x,y));
             }
         }
 
-        map.SetCell(classicFactory.CreateDestructibleWall(3, 1));
-        map.SetCell(classicFactory.CreateDestructibleWall(4, 1));
-        map.SetCell(classicFactory.CreateDestructibleWall(5, 3));
-        map.SetCell(classicFactory.CreateDestructibleWall(7, 5));
-        map.SetCell(classicFactory.CreateDestructibleWall(9, 7));
+        map.SetCell(factory.CreateDestructibleWall(3, 1));
+        map.SetCell(factory.CreateDestructibleWall(4, 1));
+        map.SetCell(factory.CreateDestructibleWall(5, 3));
+        map.SetCell(factory.CreateDestructibleWall(7, 5));
+        map.SetCell(factory.CreateDestructibleWall(9, 7));
 
         map.AddSpawnPoint(
             new SpawnPoint(

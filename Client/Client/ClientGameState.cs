@@ -1,4 +1,5 @@
 ﻿using Bomber.Client.Models;
+using System.Diagnostics;
 
 namespace Bomber.Client;
 
@@ -24,7 +25,6 @@ public sealed class ClientGameState
         GameId = response.GameId;
         MapWidth = response.MapWidth;
         MapHeight = response.MapHeight;
-
         Cells = response.Cells;
         SpawnPoints = response.SpawnPoints;
         Players = response.Players;

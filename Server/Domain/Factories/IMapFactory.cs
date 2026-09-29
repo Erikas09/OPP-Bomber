@@ -6,7 +6,7 @@ using Bomber.Domain.Maps.Cells;
 
 namespace Bomber.Domain.Factories
 {
-    interface IMapFactory
+    public interface IMapFactory
     {
         Floor CreateFloor(int x,int y);
         IndestructibleWall CreateIndestructibleWall(int x, int y);
