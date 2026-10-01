@@ -2,4 +2,7 @@
 
 public enum PowerUpType
 {
+    Speed,
+    BlastRadius,
+    ExtraBomb
 }
