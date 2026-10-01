@@ -2,17 +2,17 @@
 
 public class BlastRadiusPowerUp : PowerUp
 {
-    float blastRadius;
+    float BlastRadius;
     public BlastRadiusPowerUp() {}
 
     public BlastRadiusPowerUp(float radius)
     {
-        this.blastRadius = radius;
+        BlastRadius = radius;
     }
 
     public override PowerUpPrototype Clone()
     {
-        return new BlastRadiusPowerUp(blastRadius);
+        return new BlastRadiusPowerUp(BlastRadius);
     }
 
 }

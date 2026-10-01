@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Bomber.Domain.Maps;
-using Bomber.Domain.Maps.Cells;
+﻿using Bomber.Domain.Maps.Cells;
 
-namespace Bomber.Domain.Factories
+namespace Bomber.Application.Factories
 {
     public interface IMapFactory
     {

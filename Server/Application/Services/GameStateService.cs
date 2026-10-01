@@ -1,12 +1,13 @@
-﻿using Bomber.Domain.Bombs;
+﻿using Bomber.Application.Factories;
+using Bomber.Application.Publishers;
+using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Enums;
-using Bomber.Domain.Factories;
+using Bomber.Domain.Events;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
-using System.Diagnostics;
 
 namespace Bomber.Application.Services;
 
@@ -22,13 +23,16 @@ public sealed class GameStateService
 
     private readonly Map _map;
     private readonly BotManager _botManager;
+    private readonly GameEventPublisher _eventPublisher;
 
-    public GameStateService()
+    public GameStateService(GameEventPublisher eventPublisher)
     {
+        _eventPublisher = eventPublisher;
+
         _map = CreateTestMap(MapType.Classic);
         _botManager = new BotManager();
 
-        for(int i = 0; i < 2; i++)
+        for (int i = 0; i < 2; i++)
         {
             SpawnPoint spawnPoint = _map.SpawnPoints.ElementAt(_players.Count);
 
@@ -50,8 +54,7 @@ public sealed class GameStateService
                 return;
 
             if (_players.Count >= _map.SpawnPoints.Count)
-                throw new InvalidOperationException(
-                    "No spawn point is available.");
+                throw new InvalidOperationException("No spawn point is available.");
 
             SpawnPoint spawnPoint =
                 _map.SpawnPoints.ElementAt(_players.Count);
@@ -118,9 +121,7 @@ public sealed class GameStateService
     public List<Player> GetPlayers()
     {
         lock (_lock)
-        {
             return [.. _players.Values];
-        }
     }
 
     public Map GetMap()
@@ -148,21 +149,20 @@ public sealed class GameStateService
         if (input.Right)
             movementX += 1f;
 
-        // Normalize diagonal movement.
         float length = MathF.Sqrt(
             movementX * movementX +
             movementY * movementY);
 
-        if(length > 0f)
+        if (length > 0f)
         {
             movementX /= length;
             movementY /= length;
         }
-        
+
         float walkingSpeedModifier = 1;
         MapCell cell = _map.GetCell(GetPlayerGridPosition(player));
 
-        if(cell is ClassicFloor floor)
+        if (cell is ClassicFloor floor)
         {
             walkingSpeedModifier = floor.walkingSpeedModifier;
             float distance = player.Speed * deltaTime * walkingSpeedModifier;
@@ -170,7 +170,7 @@ public sealed class GameStateService
             movementX *= distance;
             movementY *= distance;
         }
-        else if(cell is IceFloor ifloor)
+        else if (cell is IceFloor ifloor)
         {
             walkingSpeedModifier = ifloor.walkingSpeedModifier;
             float targetVelocityX = movementX * player.Speed * walkingSpeedModifier;
@@ -184,7 +184,6 @@ public sealed class GameStateService
             movementY = player.VelocityY * deltaTime;
         }
 
-        // Resolve horizontal movement separately.
         Position horizontalPosition = new(
             player.Position.X + movementX,
             player.Position.Y);
@@ -196,7 +195,6 @@ public sealed class GameStateService
         else
             player.VelocityX = 0f;
 
-        // Resolve vertical movement separately.
         Position verticalPosition = new(
             player.Position.X,
             player.Position.Y + movementY);
@@ -264,19 +262,15 @@ public sealed class GameStateService
 
         IMapFactory factory;
 
-        if(type == MapType.Classic)
+        if (type == MapType.Classic)
             factory = new ClassicMapFactory();
         else
             factory = new IceMapFactory();
-        
+
 
         for (int x = 0; x < map.Width; x++)
-        {
             for (int y = 0; y < map.Height; y++)
-            {
                 map.SetCell(factory.CreateFloor(x, y));
-            }
-        }
 
         for (int x = 0; x < map.Width; x++)
         {
@@ -291,12 +285,8 @@ public sealed class GameStateService
         }
 
         for (int x = 2; x < map.Width - 1; x += 2)
-        {
             for (int y = 2; y < map.Height - 1; y += 2)
-            {
-                map.SetCell(factory.CreateIndestructibleWall(x,y));
-            }
-        }
+                map.SetCell(factory.CreateIndestructibleWall(x, y));
 
         map.SetCell(factory.CreateDestructibleWall(3, 1));
         map.SetCell(factory.CreateDestructibleWall(4, 1));
@@ -398,10 +388,10 @@ public sealed class GameStateService
         (int dx, int dy)[] directions =
         [
             (0, -1),
-        (0, 1),
-        (-1, 0),
-        (1, 0),
-    ];
+            (0, 1),
+            (-1, 0),
+            (1, 0),
+        ];
 
         foreach ((int dx, int dy) in directions)
         {
@@ -430,6 +420,9 @@ public sealed class GameStateService
     }
     public List<GridPosition> ExplodeBomb(Guid bombId)
     {
+        List<GameEvent> events = [];
+        List<GridPosition> affectedCells;
+
         lock (_lock)
         {
             bool found = _bombs.TryGetValue(bombId, out Bomb? bomb);
@@ -439,10 +432,39 @@ public sealed class GameStateService
 
             _bombs.Remove(bombId);
 
-            List<GridPosition> affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius);
+            affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius);
+
+            DateTimeOffset occurredAt = DateTimeOffset.UtcNow;
+
+            events.Add(
+                new BombExplodedEvent(
+                    Guid.NewGuid(),
+                    occurredAt,
+                    bomb.Id,
+                    bomb.OwnerId,
+                    bomb.Position,
+                    [.. affectedCells]));
 
             foreach (GridPosition cell in affectedCells)
+            {
+                MapCell mapCell = _map.GetCell(cell);
+
+                if (mapCell is not DestructibleWall)
+                    continue;
+
+                Guid wallId = mapCell.Id;
+
                 _map.DestroyWall(cell);
+
+                events.Add(
+                    new WallDestroyedEvent(
+                        Guid.NewGuid(),
+                        occurredAt,
+                        wallId,
+                        bomb.Id,
+                        bomb.OwnerId,
+                        cell));
+            }
 
             foreach (Player player in _players.Values)
             {
@@ -451,12 +473,39 @@ public sealed class GameStateService
 
                 GridPosition playerCell = GetPlayerGridPosition(player);
 
-                if (affectedCells.Contains(playerCell))
-                    player.TakeDamage();
-            }
+                if (!affectedCells.Contains(playerCell))
+                    continue;
 
-            return affectedCells;
+                int livesBefore = player.Lives;
+                PlayerState stateBefore = player.State;
+
+                player.TakeDamage();
+
+                if (player.Lives < livesBefore)
+                    events.Add(
+                        new PlayerDamagedEvent(
+                            Guid.NewGuid(),
+                            occurredAt,
+                            player.Id,
+                            bomb.Id,
+                            bomb.OwnerId,
+                            player.Lives));
+
+                if (stateBefore != PlayerState.Dead && player.State == PlayerState.Dead)
+                    events.Add(
+                        new PlayerDiedEvent(
+                            Guid.NewGuid(),
+                            occurredAt,
+                            player.Id,
+                            bomb.Id,
+                            bomb.OwnerId));
+            }
         }
+
+        foreach (GameEvent gameEvent in events)
+            _eventPublisher.Notify(gameEvent);
+
+        return affectedCells;
     }
     public List<Bomb> GetBombsToExplode(DateTimeOffset now)
     {

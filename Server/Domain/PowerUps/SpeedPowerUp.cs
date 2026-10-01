@@ -2,17 +2,17 @@
 
 public class SpeedPowerUp : PowerUp
 {
-    public float speedModifier;
+    public float SpeedModifier;
 
     public SpeedPowerUp() { }
 
     public SpeedPowerUp(float speedModifier)
     {
-        this.speedModifier = speedModifier;
+        SpeedModifier = speedModifier;
     }
 
     public override PowerUpPrototype Clone()
     {
-        return new SpeedPowerUp(speedModifier);
+        return new SpeedPowerUp(SpeedModifier);
     }
 }

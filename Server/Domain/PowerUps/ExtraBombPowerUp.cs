@@ -2,17 +2,17 @@
 
 public class ExtraBombPowerUp : PowerUp
 {
-    public int bombCount;
+    public int BombCount;
 
     public ExtraBombPowerUp(){}
 
     public ExtraBombPowerUp(int bombCount) 
     {
-        this.bombCount = bombCount;
+        BombCount = bombCount;
     }
 
     public override PowerUpPrototype Clone()
     {
-        return new ExtraBombPowerUp(bombCount);
+        return new ExtraBombPowerUp(BombCount);
     }
 }
