@@ -11,10 +11,11 @@ namespace Bomber.Domain.Entities.Bots
     {
         BotStrategy strategy;
 
-        public Bot(Guid id, string name, Position position, int lives, int bombLimit, int explosionRadius, float speed) :
+        public Bot(BotManager manager, Guid id, string name, Position position, int lives, int bombLimit, int explosionRadius, float speed) :
             base(id, name, position, lives, bombLimit, explosionRadius, speed)
         {
-            strategy = new();
+            strategy = new(manager);
+            MoveTo(new(Position.X + 3, Position.Y + 3));
         }
 
         public void SetStrategy(BotStrategy strategy)
@@ -22,9 +23,9 @@ namespace Bomber.Domain.Entities.Bots
             this.strategy = strategy;
         }
 
-        public void Update()
+        public void Update(float deltaTime)
         {
-            strategy.Update(this);
+            strategy.Update(this, deltaTime);
         }
     }
 }

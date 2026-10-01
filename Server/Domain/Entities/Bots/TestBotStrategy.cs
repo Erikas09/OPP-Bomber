@@ -12,12 +12,12 @@ namespace Bomber.Domain.Entities.Bots
         int strategy_updates = 0;
 
 
-        public TestBotStrategy()
+        public TestBotStrategy(BotManager manager) : base(manager)
         {
             rng = new();
         }
 
-        public override void Update(Bot bot)
+        public override void Update(Bot bot, float deltaTime)
         {
             strategy_updates++;
 

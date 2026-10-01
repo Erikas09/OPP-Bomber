@@ -1,4 +1,6 @@
 ﻿using Bomber.Domain.Common;
+using Bomber.Domain.Maps;
+using Bomber.Domain.Players;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +13,15 @@ namespace Bomber.Domain.Entities.Bots
 
         Dictionary<Guid, Bot> bots = new();
         float strategy_updates = 0;
+
+        Dictionary<Guid, Player> players;
+        Astar astar;
+
+        public BotManager(Map map, Dictionary<Guid, Player> players)
+        {
+            this.players = players;
+            astar = new(map);
+        }
 
         public Bot CreateBot(Position position)
         {
@@ -29,10 +40,10 @@ namespace Bomber.Domain.Entities.Bots
 
         Bot Create(Position position)
         {
-            return new(Guid.NewGuid(), "Bot", position, 3, 1, 2, 120f);
+            return new(this, Guid.NewGuid(), "Bot", position, 3, 1, 2, 120f);
         }
 
-        public void Update()
+        public void Update(float deltaTime)
         {
             strategy_updates++;
 
@@ -43,7 +54,7 @@ namespace Bomber.Domain.Entities.Bots
             }
 
             foreach (var bot in bots)
-                bot.Value.Update();
+                bot.Value.Update(deltaTime);
 
         }
 
@@ -55,7 +66,35 @@ namespace Bomber.Domain.Entities.Bots
 
         void UpdateBotStrategy(Bot bot)
         {
-            bot.SetStrategy(new TestBotStrategy());
+            bot.SetStrategy(new HuntStrategy(this));
+        }
+
+        public Player GetClosestPlayer(Player player)
+        {
+            Player closest = new(Guid.Empty, "", new(-1, -1), 0, 0, 0, 0);
+            float cDistance = float.MaxValue;
+
+            foreach(var p in players)
+            {
+                if (p.Value == player || p.Value is Bot)
+                    continue;
+
+                float distance = (p.Value.Position.X - player.Position.X) * (p.Value.Position.X - player.Position.X) +
+                    (p.Value.Position.Y - player.Position.Y) * (p.Value.Position.Y - player.Position.Y);
+
+                if (distance < cDistance)
+                {
+                    cDistance = distance;
+                    closest = p.Value;
+                }
+            }
+
+            return closest;
+        }
+
+        public Stack<GridPosition> FindPath(GridPosition start, GridPosition target)
+        {
+            return astar.FindPath(start, target);
         }
     }
 }

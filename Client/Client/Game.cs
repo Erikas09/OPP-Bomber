@@ -1,4 +1,5 @@
-﻿using Bomber.Client.Models;
+﻿using Bomber.Client.Input;
+using Bomber.Client.Models;
 using Bomber.Client.Network;
 using Bomber.Client.Rendering;
 
@@ -9,17 +10,12 @@ public partial class Game : Form
     private readonly GameServerConnection _serverConnection;
     private readonly ClientGameState _gameState;
     private readonly GameRenderer _renderer;
-    private readonly System.Windows.Forms.Timer _renderTimer = new() { Interval = 50 };
 
+    private readonly System.Windows.Forms.Timer _renderTimer =
+        new() { Interval = 50 };
     private readonly System.Windows.Forms.Timer _inputTimer;
-
+    private readonly IGameInput _input;
     private Guid? _localPlayerId;
-
-    private bool _up;
-    private bool _down;
-    private bool _left;
-    private bool _right;
-
     private bool _sendingInput;
 
     public Game()
@@ -29,18 +25,31 @@ public partial class Game : Form
         KeyPreview = true;
 
         _gameState = new ClientGameState();
+
         _renderer = new GameRenderer();
 
-        _serverConnection = new GameServerConnection("https://localhost:7064");
+        _serverConnection =
+            new GameServerConnection("https://localhost:7064");
+
+        var controller = new ControllerInputAdapter();
+
+        if (controller.IsConnected)
+        {
+            _input = controller;
+            Text = "Controller";
+        }
+        else
+        {
+            controller.Dispose();
+            _input = new KeyboardInputAdapter(this);
+            Text = "Keyboard";
+        }
 
         _serverConnection.PlayerAssigned += OnPlayerAssigned;
 
         _serverConnection.GameStateUpdated += OnGameStateUpdated;
 
         _serverConnection.BombExploded += OnBombExploded;
-
-        KeyDown += Game_KeyDown;
-        KeyUp += Game_KeyUp;
 
         gamePanel.Paint += GamePanel_Paint;
 
@@ -54,7 +63,9 @@ public partial class Game : Form
 
         _inputTimer.Tick += InputTimer_Tick;
 
-        _renderTimer.Tick += (_, _) => gamePanel.Invalidate();
+        _renderTimer.Tick += (_, _) =>
+            gamePanel.Invalidate();
+
         _renderTimer.Start();
     }
 
@@ -67,64 +78,21 @@ public partial class Game : Form
         _inputTimer.Start();
     }
 
-    private void Game_KeyDown(
-        object? sender,
-        KeyEventArgs e)
-    {
-        switch (e.KeyCode)
-        {
-            case Keys.W:
-                _up = true;
-                break;
-
-            case Keys.S:
-                _down = true;
-                break;
-
-            case Keys.A:
-                _left = true;
-                break;
-
-            case Keys.D:
-                _right = true;
-                break;
-        }
-    }
-
-    private void Game_KeyUp(
-        object? sender,
-        KeyEventArgs e)
-    {
-        switch (e.KeyCode)
-        {
-            case Keys.W:
-                _up = false;
-                break;
-
-            case Keys.S:
-                _down = false;
-                break;
-
-            case Keys.A:
-                _left = false;
-                break;
-
-            case Keys.D:
-                _right = false;
-                break;
-
-            case Keys.Space:
-                _ = PlaceBombAsync();
-                break;
-        }
-    }
-
-    private async void InputTimer_Tick(
+    async void InputTimer_Tick(
         object? sender,
         EventArgs e)
     {
         if (_sendingInput)
             return;
+
+        _input.Update();
+
+        Bomber.Client.Input.Input input = _input.GetInput();
+
+        if (input.bombPressed)
+        {
+            _ = PlaceBombAsync();
+        }
 
         try
         {
@@ -132,10 +100,10 @@ public partial class Game : Form
 
             MoveRequest request =
                 new(
-                    _up,
-                    _down,
-                    _left,
-                    _right);
+                    input.up,
+                    input.down,
+                    input.left,
+                    input.right);
 
             await _serverConnection.SendMovementAsync(request);
         }
@@ -159,7 +127,8 @@ public partial class Game : Form
 
         if (InvokeRequired)
         {
-            BeginInvoke(() => OnGameStateUpdated(response));
+            BeginInvoke(() =>
+                OnGameStateUpdated(response));
 
             return;
         }
@@ -187,6 +156,7 @@ public partial class Game : Form
 
         await _serverConnection.DisconnectAsync();
     }
+
     private async Task PlaceBombAsync()
     {
         try
@@ -195,17 +165,20 @@ public partial class Game : Form
         }
         catch
         {
-            // ignoruojam - kitas tick vis tiek atnaujins state
+            // Ignoruojam. Vistiek kitas tick atnaujins būseną
         }
     }
-    private void OnBombExploded(BombExplodedResponse explosion)
+
+    private void OnBombExploded(
+        BombExplodedResponse explosion)
     {
         if (IsDisposed)
             return;
 
         if (InvokeRequired)
         {
-            BeginInvoke(() => OnBombExploded(explosion));
+            BeginInvoke(() =>
+                OnBombExploded(explosion));
 
             return;
         }
