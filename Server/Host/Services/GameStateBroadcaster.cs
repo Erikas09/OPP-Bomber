@@ -13,15 +13,33 @@ namespace Bomber.Host.Services;
 
 public sealed class GameStateBroadcaster
 {
+    private static GameStateBroadcaster? _instance;
+    private static readonly object _lock = new();
+
     private readonly GameStateService _gameState;
     private readonly IHubContext<GameHub> _hub;
 
-    public GameStateBroadcaster(
+    private GameStateBroadcaster(
         GameStateService gameState,
         IHubContext<GameHub> hub)
     {
         _gameState = gameState;
         _hub = hub;
+    }
+
+    public static GameStateBroadcaster GetInstance(
+        GameStateService gameState,
+        IHubContext<GameHub> hub)
+    {
+        if (_instance is null)
+        {
+            lock (_lock)
+            {
+                _instance ??= new GameStateBroadcaster(gameState, hub);
+            }
+        }
+
+        return _instance;
     }
 
     public async Task BroadcastAsync(
