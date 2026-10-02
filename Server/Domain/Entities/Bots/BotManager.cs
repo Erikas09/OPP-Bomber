@@ -1,9 +1,6 @@
 ﻿using Bomber.Domain.Common;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Players;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Bomber.Domain.Entities.Bots
 {

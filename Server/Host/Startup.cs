@@ -41,20 +41,6 @@ internal static class Startup
         Task gameLoopTask = Task.Run(
             () => gameLoop.Run(cancellation.Token));
 
-        //GameStateService gameState =
-        //    app.Services.GetRequiredService<GameStateService>();
-
-        //IHubContext<GameHub> hub =
-        //    app.Services.GetRequiredService<IHubContext<GameHub>>();  
-
-        //GameStateBroadcaster broadcaster1 =
-        //    GameStateBroadcaster.GetInstance(gameState, hub);
-
-        //GameStateBroadcaster broadcaster2 =
-        //    GameStateBroadcaster.GetInstance(gameState, hub);
-
-        //Console.WriteLine(ReferenceEquals(broadcaster1, broadcaster2));
-
         try
         {
             app.Run();
