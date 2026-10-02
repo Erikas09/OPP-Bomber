@@ -11,11 +11,11 @@ namespace Bomber.Domain.Entities.Bots
     {
         BotStrategy strategy;
 
-        public Bot(BotManager manager, Guid id, string name, Position position, int lives, int bombLimit, int explosionRadius, float speed) :
+        public Bot(Guid id, string name, Position position, int lives, int bombLimit, int explosionRadius, float speed) :
             base(id, name, position, lives, bombLimit, explosionRadius, speed)
         {
-            strategy = new(manager);
             MoveTo(new(Position.X + 3, Position.Y + 3));
+            strategy = new HuntStrategy();
         }
 
         public void SetStrategy(BotStrategy strategy)

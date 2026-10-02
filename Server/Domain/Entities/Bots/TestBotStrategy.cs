@@ -12,7 +12,7 @@ namespace Bomber.Domain.Entities.Bots
         int strategy_updates = 0;
 
 
-        public TestBotStrategy(BotManager manager) : base(manager)
+        public TestBotStrategy()
         {
             rng = new();
         }

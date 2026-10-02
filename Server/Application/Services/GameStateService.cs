@@ -30,7 +30,8 @@ public sealed class GameStateService
         _eventPublisher = eventPublisher;
 
         _map = CreateTestMap(MapType.Classic);
-        _botManager = new BotManager(_map, _players);
+        BotManager.Initialize(_map, _players);
+        _botManager = BotManager.Instance;
 
         for (int i = 0; i < 2; i++)
         {

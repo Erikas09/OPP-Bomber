@@ -25,7 +25,7 @@ namespace Bomber.Domain.Entities.Bots
 
         bool initialized;
 
-        public HuntStrategy(BotManager manager) : base(manager)
+        public HuntStrategy( )
         {
             currentGrid = new(-1, -1);
             targetGrid = new(-1, -1);
