@@ -35,13 +35,21 @@ public sealed class GameStateService
 
         for (int i = 0; i < 2; i++)
         {
-            SpawnPoint spawnPoint = _map.SpawnPoints.ElementAt(_players.Count);
+            SpawnPoint spawnPoint =
+            _map.SpawnPoints.ElementAt(_players.Count);
 
             Position position = new(
                 spawnPoint.Position.X * TileSize,
                 spawnPoint.Position.Y * TileSize);
 
-            AddPlayer(_botManager.CreateBot(position));
+            Bot bot;
+
+            if (i == 0)
+                bot = _botManager.CreateHunter(position);
+            else
+                bot = _botManager.CreateDefender(position);
+
+            AddPlayer(bot);
         }
     }
 

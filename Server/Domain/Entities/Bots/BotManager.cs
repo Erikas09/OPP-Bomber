@@ -1,4 +1,6 @@
-﻿using Bomber.Domain.Common;
+﻿using Bomber.Domain.Builder;
+using Bomber.Domain.Builders;
+using Bomber.Domain.Common;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Players;
 
@@ -10,6 +12,8 @@ namespace Bomber.Domain.Entities.Bots
         private static readonly object _lock = new();
         const int STRATEGY_UPDATE_FREQUENCY = 200;
 
+        private readonly BotDirector director;
+
         Dictionary<Guid, Bot> bots = new();
         float strategy_updates = 0;
 
@@ -20,6 +24,7 @@ namespace Bomber.Domain.Entities.Bots
         {
             this.players = players;
             astar = new(map);
+            director = new BotDirector();
         }
 
         public static BotManager Instance
@@ -49,24 +54,34 @@ namespace Bomber.Domain.Entities.Bots
             }
         }
 
-        public Bot CreateBot(Position position)
-        {
-            Bot bot = Create(position);
-            bots.Add(bot.Id, bot);
-
-            UpdateBotStrategy(bot);
-
-            return bot;
-        }
-
         public void RemoveBot(Guid id)
         {
             bots.Remove(id);
         }
-
-        Bot Create(Position position)
+        public Bot CreateHunter(Position position)
         {
-            return new(Guid.NewGuid(), "Bot", position, 3, 1, 2, 120f);
+            IBotBuilder builder = new HunterBotBuilder();
+
+            director.ConstructHunter(builder, position);
+
+            Bot bot = builder.Build();
+
+            bots.Add(bot.Id, bot);
+
+            return bot;
+        }
+
+        public Bot CreateDefender(Position position)
+        {
+            IBotBuilder builder = new DefenderBotBuilder();
+
+            director.ConstructDefender(builder, position);
+
+            Bot bot = builder.Build();
+
+            bots.Add(bot.Id, bot);
+
+            return bot;
         }
 
         public void Update(float deltaTime)
@@ -100,7 +115,7 @@ namespace Bomber.Domain.Entities.Bots
             Player closest = new(Guid.Empty, "", new(-1, -1), 0, 0, 0, 0);
             float cDistance = float.MaxValue;
 
-            foreach(var p in players)
+            foreach (var p in players)
             {
                 if (p.Value == player || p.Value is Bot)
                     continue;
