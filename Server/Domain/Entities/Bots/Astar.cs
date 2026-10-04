@@ -71,11 +71,11 @@ namespace Bomber.Domain.Entities.Bots
 
                 GridPosition[] directions =
                 {
-        new(1, 0),
-        new(0, 1),
-        new(-1, 0),
-        new(0, -1)
-    };
+                    new(1, 0),
+                    new(0, 1),
+                    new(-1, 0),
+                    new(0, -1)
+                };
 
                 foreach (var dir in directions)
                 {

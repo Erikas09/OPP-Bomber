@@ -14,7 +14,6 @@ namespace Bomber.Domain.Entities.Bots
         public Bot(Guid id, string name, Position position, int lives, int bombLimit, int explosionRadius, float speed) :
             base(id, name, position, lives, bombLimit, explosionRadius, speed)
         {
-            MoveTo(new(Position.X + 3, Position.Y + 3));
             strategy = new HuntStrategy();
         }
 

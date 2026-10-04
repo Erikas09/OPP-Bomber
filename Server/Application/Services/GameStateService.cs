@@ -22,7 +22,6 @@ public sealed class GameStateService
     private readonly Dictionary<Guid, Bomb> _bombs = [];
 
     private readonly Map _map;
-    private readonly BotManager _botManager;
     private readonly GameEventPublisher _eventPublisher;
 
     public GameStateService(GameEventPublisher eventPublisher)
@@ -31,23 +30,22 @@ public sealed class GameStateService
 
         _map = CreateTestMap(MapType.Classic);
         BotManager.Initialize(_map, _players);
-        _botManager = BotManager.Instance;
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 1; i++)
         {
             SpawnPoint spawnPoint =
-            _map.SpawnPoints.ElementAt(_players.Count);
+                _map.SpawnPoints.ElementAt(_players.Count);
 
             Position position = new(
-                spawnPoint.Position.X * TileSize,
-                spawnPoint.Position.Y * TileSize);
+                (spawnPoint.Position.X + 0.5f) * TileSize - PlayerSize * 0.5f,
+                (spawnPoint.Position.Y + 0.5f) * TileSize - PlayerSize * 0.5f);
 
             Bot bot;
 
             if (i == 0)
-                bot = _botManager.CreateHunter(position);
+                bot = BotManager.Instance.CreateHunter(position);
             else
-                bot = _botManager.CreateDefender(position);
+                bot = BotManager.Instance.CreateDefender(position);
 
             AddPlayer(bot);
         }
@@ -69,8 +67,8 @@ public sealed class GameStateService
                 _map.SpawnPoints.ElementAt(_players.Count);
 
             Position position = new(
-                spawnPoint.Position.X * TileSize,
-                spawnPoint.Position.Y * TileSize);
+                (spawnPoint.Position.X + 0.5f) * TileSize - PlayerSize * 0.5f,
+                (spawnPoint.Position.Y + 0.5f) * TileSize - PlayerSize * 0.5f);
 
             Player player = new(
                 playerId,
@@ -123,7 +121,7 @@ public sealed class GameStateService
                 UpdatePlayer(player, player.Input, deltaTime);
             }
 
-            _botManager.Update(deltaTime);
+            BotManager.Instance.Update(deltaTime);
         }
     }
 

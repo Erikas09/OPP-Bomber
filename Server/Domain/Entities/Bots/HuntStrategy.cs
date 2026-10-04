@@ -3,6 +3,7 @@ using Bomber.Domain.Enums;
 using Bomber.Domain.Players;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace Bomber.Domain.Entities.Bots
@@ -11,7 +12,7 @@ namespace Bomber.Domain.Entities.Bots
     {
         private const float TILE_SIZE = 40f;
         private const float BOT_SIZE = 30f;
-        private const float TILE_REACH_DISTANCE = 0.001f;
+        private const float TILE_REACH_DISTANCE = 1f;
 
         private const float PATH_UPDATE_TIME = 1f;
 
@@ -36,7 +37,8 @@ namespace Bomber.Domain.Entities.Bots
         {
             if (!initialized)
             {
-                Initialize(bot);
+                currentGrid = GetGridPosition(bot.Position);
+                initialized = true;
             }
 
             pathUpdateTimer -= deltaTime;
@@ -64,18 +66,6 @@ namespace Bomber.Domain.Entities.Bots
             Move(bot);
         }
 
-        private void Initialize(Bot bot)
-        {
-            currentGrid = GetGridPosition(bot.Position);
-
-            targetGrid = new(-1, -1);
-            nextGrid = new(-1, -1);
-
-            path.Clear();
-
-            initialized = true;
-        }
-
         private void UpdatePath(Bot bot, GridPosition newTargetGrid)
         {
             GridPosition botGrid = GetGridPosition(bot.Position);
@@ -88,7 +78,6 @@ namespace Bomber.Domain.Entities.Bots
             if (newPath.Count == 0)
             {
                 path.Clear();
-                nextGrid = new(-1, -1);
                 return;
             }
 
@@ -99,44 +88,38 @@ namespace Bomber.Domain.Entities.Bots
             if (newPath.Count == 0)
             {
                 path.Clear();
-                nextGrid = new(-1, -1);
                 return;
             }
 
-            if (nextGrid.X >= 0 && IsOppositeDirection(currentGrid, nextGrid, newPath.Peek()))
-            {
-                if (path.Count > 0)
-                {
-                    return;
-                }
-            }
-
             path = newPath;
-            nextGrid = path.Peek();
         }
 
         private void Move(Bot bot)
         {
-            if (path.Count == 0)
+            if (nextGrid.X < 0 || nextGrid.Y < 0)
             {
+                if (path.Count > 0)
+                    nextGrid = path.Pop();
+
                 Stop(bot);
                 return;
             }
 
-            GridPosition next = path.Peek();
+            float botCenterX = bot.Position.X + BOT_SIZE * 0.5f;
+            float botCenterY = bot.Position.Y + BOT_SIZE * 0.5f;
 
-            float dirX = next.X - currentGrid.X;
-            float dirY = next.Y - currentGrid.Y;
+            Position nextWorld = GetWorldPosition(nextGrid);
 
-            if (dirX * dirX + dirY * dirY <= TILE_REACH_DISTANCE * TILE_REACH_DISTANCE)
+            float dirX = nextWorld.X - botCenterX;
+            float dirY = nextWorld.Y - botCenterY;
+
+            if (Math.Abs(dirX) <= TILE_REACH_DISTANCE && Math.Abs(dirY) <= TILE_REACH_DISTANCE)
             {
-                path.Pop();
-
-                currentGrid = next;
+                currentGrid = nextGrid;
 
                 if (path.Count > 0)
                 {
-                    nextGrid = path.Peek();
+                    nextGrid = path.Pop();
                 }
                 else
                 {
@@ -147,26 +130,15 @@ namespace Bomber.Domain.Entities.Bots
                 return;
             }
 
-            if (dirY < 0)
+
+            if (dirY < -TILE_REACH_DISTANCE)
                 bot.SetInput(new(true, false, false, false));
-            else if (dirY > 0)
+            else if (dirY > TILE_REACH_DISTANCE)
                 bot.SetInput(new(false, true, false, false));
-            else if (dirX < 0)
-                bot.SetInput(new(true, false, true, false));
-            else if (dirX > 0)
-                bot.SetInput(new(true, false, false, true));
-        }
-
-        private bool IsOppositeDirection(GridPosition current, GridPosition previousNext, GridPosition newNext)
-        {
-            int oldX = previousNext.X - current.X;
-            int oldY = previousNext.Y - current.Y;
-
-            int newX = newNext.X - current.X;
-            int newY = newNext.Y - current.Y;
-
-            return oldX + newX == 0 &&
-                   oldY + newY == 0;
+            else if (dirX < -TILE_REACH_DISTANCE)
+                bot.SetInput(new(false, false, true, false));
+            else if (dirX > TILE_REACH_DISTANCE)
+                bot.SetInput(new(false, false, false, true));
         }
 
         private void Stop(Bot bot)
@@ -183,6 +155,14 @@ namespace Bomber.Domain.Entities.Bots
             int gridY = (int)(centerY / TILE_SIZE);
 
             return new GridPosition(gridX, gridY);
+        }
+
+        Position GetWorldPosition(GridPosition position)
+        {
+            return new(
+                (position.X + 0.5f) * TILE_SIZE,
+                (position.Y + 0.5f) * TILE_SIZE
+            );
         }
     }
 }

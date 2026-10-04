@@ -4,12 +4,12 @@ namespace Bomber.Client.Input;
 
 public sealed class ControllerInputAdapter : IGameInput, IDisposable
 {
-    private const float StickDeadZone = 0.25f;
+    const float StickDeadZone = 0.25f;
 
-    private IntPtr _controller = IntPtr.Zero;
+    IntPtr _controller = IntPtr.Zero;
 
-    private bool _initialized;
-    private bool _previousBombButtonState;
+    bool _initialized;
+    bool _previousBombButtonState;
 
     public bool IsConnected => _controller != IntPtr.Zero;
 
@@ -93,7 +93,7 @@ public sealed class ControllerInputAdapter : IGameInput, IDisposable
         };
     }
 
-    private void UpdateMovement()
+    void UpdateMovement()
     {
         short x = SDL.SDL_GameControllerGetAxis(_controller, SDL.SDL_GameControllerAxis.SDL_CONTROLLER_AXIS_LEFTX);
 
@@ -108,14 +108,14 @@ public sealed class ControllerInputAdapter : IGameInput, IDisposable
         down = normalizedY > StickDeadZone;
     }
 
-    private void UpdateBomb()
+    void UpdateBomb()
     {
         bool currentButtonState = SDL.SDL_GameControllerGetButton(_controller,SDL.SDL_GameControllerButton.SDL_CONTROLLER_BUTTON_A) != 0;
         bombPressed = currentButtonState && !_previousBombButtonState;
         _previousBombButtonState = currentButtonState;
     }
 
-    private static float NormalizeAxis(short value)
+    static float NormalizeAxis(short value)
     {
         if (value >= 0)
             return value / 32767f;
