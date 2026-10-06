@@ -6,6 +6,7 @@ using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
+using Bomber.Domain.PowerUps;
 using Bomber.Host.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -59,6 +60,9 @@ public sealed class GameStateBroadcaster
         List<BombResponse> bombs =
             CreateBombResponses();
 
+        List<PowerUpResponse> powerUps =
+            CreatePowerUpResponses(map);
+
         GameStateResponse response =
             new(
                 map.Width,
@@ -66,7 +70,8 @@ public sealed class GameStateBroadcaster
                 cells,
                 spawnPoints,
                 players,
-                bombs);
+                bombs,
+                powerUps);
 
         await _hub.Clients.All.SendAsync(
             "GameStateUpdated",
@@ -166,6 +171,18 @@ public sealed class GameStateBroadcaster
 
         return responses;
     }
+    private List<PowerUpResponse> CreatePowerUpResponses(Map map)
+    {
+        List<PowerUpResponse> responses = [];
+        List<PowerUp> powerUps = map.GetPowerUps();
+        foreach (PowerUp powerUp in powerUps)
+        {
+            PowerUpType type = GetPowerUpType(powerUp);
+            PowerUpResponse response = new PowerUpResponse(powerUp.Id, powerUp.position_x, powerUp.position_y, type);
+            responses.Add(response);
+        }
+        return responses;
+    }
 
     private static MapCellType GetMapCellType(MapCell cell)
     {
@@ -185,5 +202,15 @@ public sealed class GameStateBroadcaster
             return MapCellType.IceIndestructibleWall;
 
         return MapCellType.IceFloor;
+    }
+    private static PowerUpType GetPowerUpType(PowerUp powerUp)
+    {
+        if (powerUp is BlastRadiusPowerUp)
+            return PowerUpType.BlastRadius;
+
+        if (powerUp is SpeedPowerUp)
+            return PowerUpType.Speed;
+
+        return PowerUpType.ExtraBomb;
     }
 }

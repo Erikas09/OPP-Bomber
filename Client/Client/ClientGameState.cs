@@ -18,6 +18,8 @@ public sealed class ClientGameState
     public List<PlayerStateResponse> Players { get; private set; } = [];
 
     public List<BombResponse> Bombs { get; private set; } = [];
+
+    public List<PowerUpResponse> PowerUps { get; private set; } = [];
     private readonly List<(ExplosionCell Cell, DateTime ExpiresAt)> _activeExplosions = [];
 
     public void Apply(GameStateResponse response)
@@ -28,7 +30,7 @@ public sealed class ClientGameState
         Cells = response.Cells;
         SpawnPoints = response.SpawnPoints;
         Players = response.Players;
-
+        PowerUps = response.PowerUps;
         Bombs = response.Bombs;
     }
     public void AddExplosion(BombExplodedResponse explosion)

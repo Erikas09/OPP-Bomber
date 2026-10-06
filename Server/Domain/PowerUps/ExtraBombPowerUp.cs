@@ -1,4 +1,6 @@
-﻿namespace Bomber.Domain.PowerUps;
+﻿using Bomber.Domain.Common;
+
+namespace Bomber.Domain.PowerUps;
 
 public class ExtraBombPowerUp : PowerUp
 {
@@ -6,13 +8,17 @@ public class ExtraBombPowerUp : PowerUp
 
     public ExtraBombPowerUp(){}
 
-    public ExtraBombPowerUp(int bombCount) 
+    public ExtraBombPowerUp(int bombCount, GridPosition position) 
     {
+        Id = Guid.NewGuid();
         BombCount = bombCount;
+        position_x = position.X;
+        position_y = position.Y;
     }
 
     public override PowerUpPrototype Clone()
     {
-        return new ExtraBombPowerUp(BombCount);
+        GridPosition pos = new GridPosition(position_x, position_y);
+        return new ExtraBombPowerUp(BombCount, pos);
     }
 }

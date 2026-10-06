@@ -1,5 +1,6 @@
 ﻿using Bomber.Domain.Common;
 using Bomber.Domain.Maps.Cells;
+using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Maps;
 
@@ -7,6 +8,7 @@ public sealed class Map
 {
     private readonly MapCell[,] _cells;
     private readonly List<SpawnPoint> _spawnPoints = [];
+    private readonly List<PowerUp> _powerUps;
 
     public Guid Id { get; }
     public string Name { get; }
@@ -30,7 +32,8 @@ public sealed class Map
         Height = height;
 
         _cells = new MapCell[width, height];
-
+        
+        _powerUps = new List<PowerUp>();
     }
 
     public MapCell GetCell(
@@ -94,6 +97,12 @@ public sealed class Map
         return null;
     }
 
+    public List<PowerUp> GetPowerUps()
+    {
+        return _powerUps;
+    }
+
+
     public void DestroyWall(
         GridPosition position)
     {
@@ -109,5 +118,25 @@ public sealed class Map
             SetCell(new ClassicFloor(Guid.NewGuid(), position));
         else
             SetCell(new IceFloor(Guid.NewGuid(), position));
+
+        Random rnd = new Random();
+        int num = rnd.Next(1, 4);
+
+        switch(num)
+        {
+            case 1:
+                ExtraBombPowerUp bombPowerUp = new ExtraBombPowerUp(3, position);
+                _powerUps.Add(bombPowerUp);
+                break;
+            case 2:               
+                BlastRadiusPowerUp radiusPowerUp = new BlastRadiusPowerUp(3, position);
+                _powerUps.Add(radiusPowerUp);
+                break;
+            case 3:
+                SpeedPowerUp speedPowerUp = new SpeedPowerUp(3, position);
+                _powerUps.Add(speedPowerUp);
+                break;
+        }
+        
     }
 }

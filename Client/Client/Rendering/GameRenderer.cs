@@ -9,11 +9,13 @@ public sealed class GameRenderer
     private readonly PlayerRenderer _playerRenderer;
 
     private readonly BombRenderer _bombRenderer;
+    private readonly PowerUpRenderer _powerUpRenderer;
     public GameRenderer()
     {
         _mapRenderer = new MapRenderer();
         _playerRenderer = new PlayerRenderer();
         _bombRenderer = new BombRenderer();
+        _powerUpRenderer = new PowerUpRenderer();
     }
 
     public void Draw(
@@ -25,6 +27,7 @@ public sealed class GameRenderer
             graphics,
             gameState.Cells);
 
+        _powerUpRenderer.Draw(graphics, gameState.PowerUps);
         List<ExplosionCell> explosions = gameState.GetActiveExplosionCells();
 
         ExplosionRenderer.Draw(graphics, explosions);
