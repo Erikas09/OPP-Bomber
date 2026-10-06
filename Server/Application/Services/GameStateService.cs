@@ -8,6 +8,7 @@ using Bomber.Domain.Events;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
+using Bomber.Domain.PowerUps;
 
 namespace Bomber.Application.Services;
 
@@ -167,7 +168,8 @@ public sealed class GameStateService
         }
 
         float walkingSpeedModifier = 1;
-        MapCell cell = _map.GetCell(GetPlayerGridPosition(player));
+        GridPosition playerPos = GetPlayerGridPosition(player);
+        MapCell cell = _map.GetCell(playerPos);
 
         if (cell is ClassicFloor floor)
         {
@@ -212,6 +214,9 @@ public sealed class GameStateService
         }
         else
             player.VelocityY = 0f;
+
+        _map.RemovePowerUp(playerPos);
+
     }
     private static float MoveToward(float current, float target, float maxDelta)
     {

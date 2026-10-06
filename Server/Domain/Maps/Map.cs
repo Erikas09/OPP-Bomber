@@ -101,7 +101,24 @@ public sealed class Map
     {
         return _powerUps;
     }
+    
+    public PowerUp GetPowerUpByPosition(GridPosition position)
+    {
+        foreach(PowerUp powerUp in _powerUps)
+        {
+            if (powerUp.position_x == position.X && powerUp.position_y == position.Y)
+                return powerUp;
+        }
 
+        return null;
+    }
+    public void RemovePowerUp(GridPosition position)
+    {
+        PowerUp powerUp = GetPowerUpByPosition(position);
+
+        if (powerUp is not null)
+            _powerUps.Remove(powerUp);
+    }
 
     public void DestroyWall(
         GridPosition position)
