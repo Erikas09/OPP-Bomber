@@ -48,20 +48,17 @@ public sealed class GameStateBroadcaster
     {
         Map map = _gameState.GetMap();
 
-        List<MapCellResponse> cells =
-            CreateMapCellResponses(map);
+        List<MapCellResponse> cells = CreateMapCellResponses(map);
 
-        List<SpawnPointResponse> spawnPoints =
-            CreateSpawnPointResponses(map);
+        List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
 
-        List<PlayerStateResponse> players =
-            CreatePlayerResponses();
+        List<PlayerStateResponse> players = CreatePlayerResponses();
 
-        List<BombResponse> bombs =
-            CreateBombResponses();
+        List<BombResponse> bombs = CreateBombResponses();
 
-        List<PowerUpResponse> powerUps =
-            CreatePowerUpResponses(map);
+        List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
+
+        List<ExplosionResponse> explosions = CreateExplosionResponses();
 
         GameStateResponse response =
             new(
@@ -71,7 +68,8 @@ public sealed class GameStateBroadcaster
                 spawnPoints,
                 players,
                 bombs,
-                powerUps);
+                powerUps,
+                explosions);
 
         await _hub.Clients.All.SendAsync(
             "GameStateUpdated",
@@ -171,7 +169,7 @@ public sealed class GameStateBroadcaster
 
         return responses;
     }
-    private List<PowerUpResponse> CreatePowerUpResponses(Map map)
+    private static List<PowerUpResponse> CreatePowerUpResponses(Map map)
     {
         List<PowerUpResponse> responses = [];
         List<PowerUp> powerUps = map.GetPowerUps();
@@ -203,6 +201,7 @@ public sealed class GameStateBroadcaster
 
         return MapCellType.IceFloor;
     }
+
     private static PowerUpType GetPowerUpType(PowerUp powerUp)
     {
         if (powerUp is BlastRadiusPowerUp)
@@ -212,5 +211,26 @@ public sealed class GameStateBroadcaster
             return PowerUpType.Speed;
 
         return PowerUpType.ExtraBomb;
+    }
+
+    private List<ExplosionResponse> CreateExplosionResponses()
+    {
+        List<Explosion> explosions = _gameState.GetExplosions();
+
+        List<ExplosionResponse> responses = [];
+
+        foreach (Explosion explosion in explosions)
+        {
+            ExplosionResponse response =
+                new(
+                    explosion.Id,
+                    explosion.BombId,
+                    explosion.OwnerId,
+                    [.. explosion.Cells]);
+
+            responses.Add(response);
+        }
+
+        return responses;
     }
 }

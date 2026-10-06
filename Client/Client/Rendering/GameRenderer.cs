@@ -35,10 +35,12 @@ public sealed class GameRenderer
 
         _powerUpRenderer.Draw(gameState.PowerUps);
 
-        List<ExplosionCell> explosions = gameState.GetActiveExplosionCells();
+        List<GridPosition> explosionCells = [];
 
-        _explosionRenderer.Draw(
-            explosions);
+        foreach (ExplosionResponse explosion in gameState.Explosions)
+            explosionCells.AddRange(explosion.Cells);
+
+        _explosionRenderer.Draw(explosionCells);
 
         foreach (BombResponse bomb in gameState.Bombs)
             _bombRenderer.Draw(bomb);

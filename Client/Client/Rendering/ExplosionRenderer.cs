@@ -12,7 +12,7 @@ public sealed class ExplosionRenderer : Renderer
     {
     }
 
-    public void Draw(List<ExplosionCell> cells)
+    public void Draw(List<GridPosition> cells)
     {
         Color color =
             Color.FromArgb(
@@ -21,7 +21,7 @@ public sealed class ExplosionRenderer : Renderer
                 140,
                 0);
 
-        foreach (ExplosionCell cell in cells)
+        foreach (GridPosition cell in cells)
         {
             RectangleF rectangle = new(
                 cell.X * TileSize,
@@ -29,9 +29,7 @@ public sealed class ExplosionRenderer : Renderer
                 TileSize,
                 TileSize);
 
-            DrawingContext.FillRectangle(
-                color,
-                rectangle);
+            DrawingContext.FillRectangle(color, rectangle);
         }
     }
 }

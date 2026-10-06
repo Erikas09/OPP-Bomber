@@ -16,11 +16,13 @@ public sealed class GameStateService
 {
     private const float PlayerSize = 30f;
     private const int TileSize = 40;
+    private const float ExplosionDurationSeconds = 0.5f;
 
     private readonly Lock _lock = new();
 
     private readonly Dictionary<Guid, Player> _players = [];
     private readonly Dictionary<Guid, Bomb> _bombs = [];
+    private readonly Dictionary<Guid, Explosion> _explosions = [];
 
     private readonly Map _map;
     private readonly GameEventPublisher _eventPublisher;
@@ -123,6 +125,8 @@ public sealed class GameStateService
             }
 
             BotManager.Instance.Update(deltaTime);
+
+            RemoveExpiredExplosions(DateTimeOffset.UtcNow);
         }
     }
 
@@ -217,12 +221,13 @@ public sealed class GameStateService
 
         PowerUp powerUp = _map.GetPowerUpByPosition(playerPos);
 
-        if(powerUp is not null)
+        if (powerUp is not null)
         {
             player.PickUpPowerUp(powerUp);
             _map.RemovePowerUp(playerPos);
         }
     }
+
     private static float MoveToward(float current, float target, float maxDelta)
     {
         float diff = target - current;
@@ -343,6 +348,7 @@ public sealed class GameStateService
 
         return map;
     }
+
     public bool PlaceBomb(
     Guid playerId,
     out Bomb? bomb)
@@ -386,6 +392,7 @@ public sealed class GameStateService
             return true;
         }
     }
+
     private GridPosition GetPlayerGridPosition(Player player)
     {
         float centerX = player.Position.X + PlayerSize / 2f;
@@ -396,6 +403,7 @@ public sealed class GameStateService
 
         return new GridPosition(gridX, gridY);
     }
+
     private List<GridPosition> ComputeExplosionCells(
     GridPosition origin,
     int radius)
@@ -435,6 +443,7 @@ public sealed class GameStateService
 
         return cells;
     }
+
     public List<GridPosition> ExplodeBomb(Guid bombId)
     {
         List<GameEvent> events = [];
@@ -452,6 +461,17 @@ public sealed class GameStateService
             affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius);
 
             DateTimeOffset occurredAt = DateTimeOffset.UtcNow;
+
+            Explosion explosion = new(
+                Guid.NewGuid(),
+                bomb.Id,
+                bomb.OwnerId,
+                bomb.Position,
+                affectedCells,
+                occurredAt,
+                ExplosionDurationSeconds);
+
+            _explosions.Add(explosion.Id, explosion);
 
             events.Add(
                 new BombExplodedEvent(
@@ -490,7 +510,7 @@ public sealed class GameStateService
 
                 GridPosition playerCell = GetPlayerGridPosition(player);
 
-                if (!affectedCells.Contains(playerCell))
+                if (!explosion.Contains(playerCell))
                     continue;
 
                 int livesBefore = player.Lives;
@@ -524,6 +544,19 @@ public sealed class GameStateService
 
         return affectedCells;
     }
+
+    private void RemoveExpiredExplosions(DateTimeOffset now)
+    {
+        List<Guid> expiredExplosionIds =
+            _explosions
+                .Where(e => e.Value.IsExpired(now))
+                .Select(e => e.Key)
+                .ToList();
+
+        foreach (Guid explosionId in expiredExplosionIds)
+            _explosions.Remove(explosionId);
+    }
+
     public List<Bomb> GetBombsToExplode(DateTimeOffset now)
     {
         lock (_lock)
@@ -534,6 +567,12 @@ public sealed class GameStateService
     {
         lock (_lock)
             return [.. _bombs.Values];
+    }
+
+    public List<Explosion> GetExplosions()
+    {
+        lock (_lock)
+            return [.. _explosions.Values];
     }
 
 

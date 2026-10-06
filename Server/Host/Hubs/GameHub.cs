@@ -89,7 +89,8 @@ public sealed class GameHub : Hub
         List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
         List<PlayerStateResponse> players = CreatePlayerResponses();
         List<BombResponse> bombs = CreateBombResponses();
-        List<PowerUpResponse> powerUps = CreatePowerUpResponses(map); 
+        List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
+        List<ExplosionResponse> explosions = CreateExplosionResponses();
 
         GameStateResponse response =
             new(
@@ -99,10 +100,12 @@ public sealed class GameHub : Hub
                 spawnPoints,
                 players,
                 bombs,
-                powerUps);
+                powerUps,
+                explosions);
 
         await Clients.All.SendAsync("GameStateUpdated", response);
     }
+
     private List<BombResponse> CreateBombResponses()
     {
         List<Bomb> bombs = _gameState.GetBombs();
@@ -124,6 +127,28 @@ public sealed class GameHub : Hub
 
         return responses;
     }
+
+    private List<ExplosionResponse> CreateExplosionResponses()
+    {
+        List<Explosion> explosions = _gameState.GetExplosions();
+
+        List<ExplosionResponse> responses = [];
+
+        foreach (Explosion explosion in explosions)
+        {
+            ExplosionResponse response =
+                new(
+                    explosion.Id,
+                    explosion.BombId,
+                    explosion.OwnerId,
+                    [.. explosion.Cells]);
+
+            responses.Add(response);
+        }
+
+        return responses;
+    }
+
     private static List<MapCellResponse> CreateMapCellResponses(Map map)
     {
         List<MapCellResponse> responses = [];
@@ -203,17 +228,26 @@ public sealed class GameHub : Hub
     {
         List<PowerUpResponse> responses = [];
         List<PowerUp> powerUps = map.GetPowerUps();
-        foreach(PowerUp powerUp in powerUps)
+
+        foreach (PowerUp powerUp in powerUps)
         {
             PowerUpType type = GetPowerUpType(powerUp);
-            PowerUpResponse response = new PowerUpResponse(powerUp.Id, powerUp.position_x, powerUp.position_y, type);
+
+            PowerUpResponse response =
+                new(
+                    powerUp.Id,
+                    powerUp.position_x,
+                    powerUp.position_y,
+                    type);
+
             responses.Add(response);
         }
+
         return responses;
     }
 
     private static MapCellType GetMapCellType(MapCell cell)
-    {        
+    {
         if (cell is ClassicDestructibleWall)
             return MapCellType.DestructibleWall;
 
@@ -264,22 +298,12 @@ public sealed class GameHub : Hub
     }
 
     private async Task ScheduleExplosion(
-    Guid bombId,
-    int fuseSeconds)
+        Guid bombId,
+        int fuseSeconds)
     {
         await Task.Delay(TimeSpan.FromSeconds(fuseSeconds));
 
-        List<GridPosition> affectedCells = _gameState.ExplodeBomb(bombId);
-
-        if (affectedCells.Count > 0)
-        {
-            List<ExplosionCell> cells =
-                [.. affectedCells.Select(c => new ExplosionCell(c.X, c.Y))];
-
-            BombExplodedResponse explosion = new(bombId, cells);
-
-            await Clients.All.SendAsync("BombExploded", explosion);
-        }
+        _gameState.ExplodeBomb(bombId);
 
         await BroadcastGameState();
     }
