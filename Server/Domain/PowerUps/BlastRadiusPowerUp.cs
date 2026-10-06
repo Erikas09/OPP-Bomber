@@ -1,13 +1,14 @@
 ﻿using Bomber.Domain.Common;
+using Bomber.Domain.Players;
 
 namespace Bomber.Domain.PowerUps;
 
 public class BlastRadiusPowerUp : PowerUp
 {
-    float BlastRadius;
+    int BlastRadius;
     public BlastRadiusPowerUp() {}
 
-    public BlastRadiusPowerUp(float radius, GridPosition position)
+    public BlastRadiusPowerUp(int radius, GridPosition position)
     {
         Id = Guid.NewGuid();
         BlastRadius = radius;
@@ -19,6 +20,11 @@ public class BlastRadiusPowerUp : PowerUp
     {
         GridPosition pos = new GridPosition(position_x, position_y);
         return new BlastRadiusPowerUp(BlastRadius, pos);
+    }
+    public override void ApplyEffect(Player player)
+    {
+        int radius = player.GetExplosionRadius();
+        player.SetExplosionRadius(radius + BlastRadius);
     }
 
 }

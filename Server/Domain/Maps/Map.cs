@@ -142,15 +142,15 @@ public sealed class Map
         switch(num)
         {
             case 1:
-                ExtraBombPowerUp bombPowerUp = new ExtraBombPowerUp(3, position);
+                ExtraBombPowerUp bombPowerUp = new ExtraBombPowerUp(1, position);
                 _powerUps.Add(bombPowerUp);
                 break;
             case 2:               
-                BlastRadiusPowerUp radiusPowerUp = new BlastRadiusPowerUp(3, position);
+                BlastRadiusPowerUp radiusPowerUp = new BlastRadiusPowerUp(1, position);
                 _powerUps.Add(radiusPowerUp);
                 break;
             case 3:
-                SpeedPowerUp speedPowerUp = new SpeedPowerUp(3, position);
+                SpeedPowerUp speedPowerUp = new SpeedPowerUp(1.25f, position);
                 _powerUps.Add(speedPowerUp);
                 break;
         }

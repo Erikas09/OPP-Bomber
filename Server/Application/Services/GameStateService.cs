@@ -215,8 +215,13 @@ public sealed class GameStateService
         else
             player.VelocityY = 0f;
 
-        _map.RemovePowerUp(playerPos);
+        PowerUp powerUp = _map.GetPowerUpByPosition(playerPos);
 
+        if(powerUp is not null)
+        {
+            player.PickUpPowerUp(powerUp);
+            _map.RemovePowerUp(playerPos);
+        }
     }
     private static float MoveToward(float current, float target, float maxDelta)
     {

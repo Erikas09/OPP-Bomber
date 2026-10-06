@@ -1,4 +1,5 @@
 ﻿using Bomber.Domain.Common;
+using Bomber.Domain.Players;
 
 namespace Bomber.Domain.PowerUps;
 
@@ -20,5 +21,11 @@ public class ExtraBombPowerUp : PowerUp
     {
         GridPosition pos = new GridPosition(position_x, position_y);
         return new ExtraBombPowerUp(BombCount, pos);
+    }
+
+    public override void ApplyEffect(Player player)
+    {
+        int bombLimit = player.GetBombLimit();
+        player.SetBombLimit(bombLimit + BombCount);
     }
 }

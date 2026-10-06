@@ -11,7 +11,7 @@ public sealed class PowerUpFactory
         return type switch
         {
             PowerUpType.Speed => new SpeedPowerUp(30f, position),
-            PowerUpType.BlastRadius => new BlastRadiusPowerUp(1f, position),
+            PowerUpType.BlastRadius => new BlastRadiusPowerUp(1, position),
             PowerUpType.ExtraBomb => new ExtraBombPowerUp(1, position),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown power-up type."),
         };
