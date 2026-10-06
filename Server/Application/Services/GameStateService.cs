@@ -27,14 +27,22 @@ public sealed class GameStateService
     private readonly Map _map;
     private readonly GameEventPublisher _eventPublisher;
 
+
+    public delegate void OnBombRequestHandler(Guid id);
+    public OnBombRequestHandler OnBombRequest;
+
     public GameStateService(GameEventPublisher eventPublisher)
     {
         _eventPublisher = eventPublisher;
 
+        OnBombRequest = _ => { };
+
         _map = CreateTestMap(MapType.Classic);
         BotManager.Initialize(_map, _players);
+        BotManager.Instance.OnBombRequest += id => OnBombRequest?.Invoke(id);
+        BotManager.Instance.GetBombList = GetBombs;
 
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 2; i++)
         {
             SpawnPoint spawnPoint =
                 _map.SpawnPoints.ElementAt(_players.Count);

@@ -23,6 +23,8 @@ public sealed class GameHub : Hub
     {
         _gameState = gameState;
         _connections = connections;
+
+        _gameState.OnBombRequest += id => _ = PlaceBotBomb(id);
     }
 
     public override async Task OnConnectedAsync()
@@ -293,6 +295,18 @@ public sealed class GameHub : Hub
             return;
 
         await BroadcastGameState();
+
+        _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
+    }
+
+    public async Task PlaceBotBomb(Guid playerId)
+    {
+        bool placed = _gameState.PlaceBomb(playerId, out Bomb? bomb);
+
+        if (!placed || bomb is null)
+            return;
+
+        //await BroadcastGameState();
 
         _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
     }

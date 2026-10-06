@@ -22,7 +22,7 @@ internal class DefenderBotBuilder : IBotBuilder
         bombLimit = 0;
         explosionRadius = 0;
         speed = 0;
-        strategy = new HuntStrategy();
+        strategy = null!;
     }
 
     public void SetPosition(Position position)

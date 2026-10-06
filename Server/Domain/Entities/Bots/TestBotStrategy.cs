@@ -17,7 +17,7 @@ namespace Bomber.Domain.Entities.Bots
             rng = new();
         }
 
-        public override void Update(Bot bot, float deltaTime)
+        public override void Update(float deltaTime)
         {
             strategy_updates++;
 
@@ -28,7 +28,7 @@ namespace Bomber.Domain.Entities.Bots
                 int directionX = rng.Next(3) - 1;
                 int directionY = rng.Next(3) - 1;
 
-                bot.SetInput(new(directionY == 1, directionY == -1, directionX == 1, directionX == -1));
+                CurrentBot.SetInput(new(directionY == 1, directionY == -1, directionX == 1, directionX == -1));
             }
         }
     }

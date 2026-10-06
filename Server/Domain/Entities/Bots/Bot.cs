@@ -19,12 +19,13 @@ namespace Bomber.Domain.Entities.Bots
 
         public void SetStrategy(BotStrategy strategy)
         {
+            strategy.SetBot(this);
             this.strategy = strategy;
         }
 
         public void Update(float deltaTime)
         {
-            strategy.Update(this, deltaTime);
+            strategy.Update(deltaTime);
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿using Bomber.Domain.Builder;
+﻿using Bomber.Domain.Bombs;
+using Bomber.Domain.Builder;
 using Bomber.Domain.Builders;
 using Bomber.Domain.Common;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Players;
+using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Entities.Bots
 {
@@ -10,7 +12,7 @@ namespace Bomber.Domain.Entities.Bots
     {
         private static BotManager? instance;
         private static readonly object _lock = new();
-        const int STRATEGY_UPDATE_FREQUENCY = 200;
+        const float STRATEGY_UPDATE_FREQUENCY = 3f;
 
         private readonly BotDirector director;
 
@@ -20,8 +22,21 @@ namespace Bomber.Domain.Entities.Bots
         Dictionary<Guid, Player> players;
         Astar astar;
 
-        private BotManager(Map map, Dictionary<Guid, Player> players)
+        public Map GameMap { private set; get; }
+        Random rng;
+
+        public delegate List<Bomb> GetBombListHandler();
+        public GetBombListHandler GetBombList;
+        public delegate void OnBombRequestHandler(Guid id);
+        public OnBombRequestHandler OnBombRequest;
+
+
+        private BotManager( Map map, Dictionary<Guid, Player> players)
         {
+            OnBombRequest = _ => { };
+            GetBombList = () => new();
+            rng = new();
+            GameMap = map;
             this.players = players;
             astar = new(map);
             director = new BotDirector();
@@ -41,6 +56,7 @@ namespace Bomber.Domain.Entities.Bots
         }
 
         public static void Initialize(
+                
                 Map map,
                 Dictionary<Guid, Player> players)
         {
@@ -86,7 +102,7 @@ namespace Bomber.Domain.Entities.Bots
 
         public void Update(float deltaTime)
         {
-            strategy_updates++;
+            strategy_updates += deltaTime;
 
             if (strategy_updates >= STRATEGY_UPDATE_FREQUENCY)
             {
@@ -107,7 +123,38 @@ namespace Bomber.Domain.Entities.Bots
 
         void UpdateBotStrategy(Bot bot)
         {
-            bot.SetStrategy(new HuntStrategy());
+            List<(BotStrategy, float)> strategies = new(GetAllStrategies(bot).Select(s => (s, s.GetWeight())));
+
+            float totalWeight = strategies.Select(s => s.Item2).Sum();
+
+            if(totalWeight == 0)
+            {
+                bot.SetStrategy(strategies[0].Item1);
+                return;
+            }
+
+            float random = rng.NextSingle() * totalWeight;
+            float current = 0;
+
+            foreach(var s in strategies)
+            {
+                current += s.Item2;
+                if(current >= random)
+                {
+                    bot.SetStrategy(s.Item1);
+                    return;
+                }
+            }
+        }
+
+        List<BotStrategy> GetAllStrategies(Bot bot)
+        {
+            return new()
+            {
+                new HuntStrategy(bot),
+                new PowerUpStrategy(bot),
+                new RunStrategy(bot)
+            };
         }
 
         public Player GetClosestPlayer(Player player)

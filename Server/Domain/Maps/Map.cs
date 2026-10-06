@@ -53,6 +53,21 @@ public sealed class Map
         _cells[cell.Position.X, cell.Position.Y] = cell;
     }
 
+    public List<GridPosition> GetAllWalkablePositions()
+    {
+        List<GridPosition> positions = new();
+
+        for(int x = 0; x < Width; x++)
+            for(int y = 0; y < Height; y++)
+            {
+                GridPosition position = new(x, y);
+                if (IsWalkable(position))
+                    positions.Add(position);
+            }
+
+        return positions;
+    }
+
     public bool IsWalkable(
         GridPosition position)
     {
@@ -102,7 +117,7 @@ public sealed class Map
         return _powerUps;
     }
     
-    public PowerUp GetPowerUpByPosition(GridPosition position)
+    public PowerUp? GetPowerUpByPosition(GridPosition position)
     {
         foreach(PowerUp powerUp in _powerUps)
         {
@@ -114,7 +129,7 @@ public sealed class Map
     }
     public void RemovePowerUp(GridPosition position)
     {
-        PowerUp powerUp = GetPowerUpByPosition(position);
+        PowerUp? powerUp = GetPowerUpByPosition(position);
 
         if (powerUp is not null)
             _powerUps.Remove(powerUp);
