@@ -1,4 +1,5 @@
-﻿using Bomber.Client.Input;
+﻿using Bomber.Client.Contexts;
+using Bomber.Client.Input;
 using Bomber.Client.Models;
 using Bomber.Client.Network;
 using Bomber.Client.Rendering;
@@ -26,10 +27,9 @@ public partial class Game : Form
 
         _gameState = new ClientGameState();
 
-        _renderer = new GameRenderer();
+        _renderer = new GameRenderer(new SystemDrawingContext());
 
-        _serverConnection =
-            new GameServerConnection("https://localhost:7064");
+        _serverConnection = new GameServerConnection("https://localhost:7064");
 
         var controller = new ControllerInputAdapter();
 

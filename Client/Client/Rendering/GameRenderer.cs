@@ -1,21 +1,27 @@
-﻿using Bomber.Client.Models;
-using System.Diagnostics;
+﻿using Bomber.Client.Interfaces;
+using Bomber.Client.Models;
 
 namespace Bomber.Client.Rendering;
 
 public sealed class GameRenderer
 {
+    private readonly IDrawingContext _drawingContext;
+
     private readonly MapRenderer _mapRenderer;
     private readonly PlayerRenderer _playerRenderer;
-
     private readonly BombRenderer _bombRenderer;
     private readonly PowerUpRenderer _powerUpRenderer;
-    public GameRenderer()
+    private readonly ExplosionRenderer _explosionRenderer;
+
+    public GameRenderer(IDrawingContext drawingContext)
     {
-        _mapRenderer = new MapRenderer();
-        _playerRenderer = new PlayerRenderer();
-        _bombRenderer = new BombRenderer();
-        _powerUpRenderer = new PowerUpRenderer();
+        _drawingContext = drawingContext;
+
+        _mapRenderer = new MapRenderer(drawingContext);
+        _playerRenderer = new PlayerRenderer(drawingContext);
+        _bombRenderer = new BombRenderer(drawingContext);
+        _powerUpRenderer = new PowerUpRenderer(drawingContext);
+        _explosionRenderer = new ExplosionRenderer(drawingContext);
     }
 
     public void Draw(
@@ -23,28 +29,21 @@ public sealed class GameRenderer
         ClientGameState gameState,
         Guid? localPlayerId)
     {
-        _mapRenderer.Draw(
-            graphics,
-            gameState.Cells);
+        _drawingContext.BeginFrame(graphics);
 
-        _powerUpRenderer.Draw(graphics, gameState.PowerUps);
+        _mapRenderer.Draw(gameState.Cells);
+
+        _powerUpRenderer.Draw(gameState.PowerUps);
+
         List<ExplosionCell> explosions = gameState.GetActiveExplosionCells();
 
-        ExplosionRenderer.Draw(graphics, explosions);
+        _explosionRenderer.Draw(
+            explosions);
 
         foreach (BombResponse bomb in gameState.Bombs)
-        {
-            BombRenderer.Draw(
-                graphics,
-                bomb);
-        }
+            _bombRenderer.Draw(bomb);
 
         foreach (PlayerStateResponse player in gameState.Players)
-        {
-            PlayerRenderer.Draw(
-                graphics,
-                player,
-                localPlayerId);
-        }
+            _playerRenderer.Draw(player, localPlayerId);
     }
 }

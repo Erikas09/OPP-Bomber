@@ -1,27 +1,36 @@
-﻿using Bomber.Client.Models;
+﻿using Bomber.Client.Interfaces;
+using Bomber.Client.Models;
 
 namespace Bomber.Client.Rendering;
 
-public sealed class ExplosionRenderer
+public sealed class ExplosionRenderer : Renderer
 {
     private const int TileSize = 40;
 
-    public static void Draw(
-        Graphics graphics,
-        IReadOnlyCollection<ExplosionCell> cells)
+    public ExplosionRenderer(IDrawingContext drawingContext)
+        : base(drawingContext)
     {
-        using SolidBrush brush = new(Color.FromArgb(160, 255, 140, 0));
+    }
+
+    public void Draw(List<ExplosionCell> cells)
+    {
+        Color color =
+            Color.FromArgb(
+                160,
+                255,
+                140,
+                0);
 
         foreach (ExplosionCell cell in cells)
         {
-            Rectangle rectangle = new(
+            RectangleF rectangle = new(
                 cell.X * TileSize,
                 cell.Y * TileSize,
                 TileSize,
                 TileSize);
 
-            graphics.FillRectangle(
-                brush,
+            DrawingContext.FillRectangle(
+                color,
                 rectangle);
         }
     }

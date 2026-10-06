@@ -1,33 +1,40 @@
-﻿using Bomber.Client.Models;
+﻿using Bomber.Client.Interfaces;
+using Bomber.Client.Models;
 
 namespace Bomber.Client.Rendering;
 
-public sealed class PlayerRenderer
+public sealed class PlayerRenderer : Renderer
 {
     private const int PlayerSize = 30;
 
-    public static void Draw(
-        Graphics graphics,
+    public PlayerRenderer(IDrawingContext drawingContext)
+        : base(drawingContext)
+    {
+    }
+
+    public void Draw(
         PlayerStateResponse player,
         Guid? localPlayerId)
     {
-        Brush brush =
+        Color color =
             player.Id == localPlayerId
-                ? Brushes.Blue
-                : Brushes.Red;
+                ? Color.Blue
+                : Color.Red;
 
-        graphics.FillRectangle(
-            brush,
+        RectangleF rectangle = new(
             player.X,
             player.Y,
             PlayerSize,
             PlayerSize);
 
-        graphics.DrawString(
-        $"♥ {player.Lives}",
-        SystemFonts.DefaultFont,
-        Brushes.White,
-        player.X,
-        player.Y - 16);
+        DrawingContext.FillRectangle(
+            color,
+            rectangle);
+
+        DrawingContext.DrawText(
+            $"♥ {player.Lives}",
+            Color.White,
+            player.X,
+            player.Y - 16);
     }
 }
