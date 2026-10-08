@@ -61,7 +61,7 @@ public partial class Game : Form
             Interval = 50
         };
 
-        _inputTimer.Tick += InputTimer_Tick;
+        _inputTimer.Tick += UpdateInput;
 
         _renderTimer.Tick += (_, _) =>
             gamePanel.Invalidate();
@@ -78,18 +78,16 @@ public partial class Game : Form
         _inputTimer.Start();
     }
 
-    async void InputTimer_Tick(
-        object? sender,
-        EventArgs e)
+    async void UpdateInput(object? sender, EventArgs e)
     {
         if (_sendingInput)
             return;
 
         _input.Update();
 
-        Bomber.Client.Input.Input input = _input.GetInput();
+        Input.Input input = _input.GetInput();
 
-        if (input.bombPressed)
+        if (input.BombPressed)
         {
             _ = PlaceBombAsync();
         }
@@ -100,10 +98,10 @@ public partial class Game : Form
 
             MoveRequest request =
                 new(
-                    input.up,
-                    input.down,
-                    input.left,
-                    input.right);
+                    input.Up,
+                    input.Down,
+                    input.Left,
+                    input.Right);
 
             await _serverConnection.SendMovementAsync(request);
         }

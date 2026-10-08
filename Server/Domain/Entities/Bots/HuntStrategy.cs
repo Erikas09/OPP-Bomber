@@ -13,9 +13,7 @@ namespace Bomber.Domain.Entities.Bots
         private const float TILE_SIZE = 40f;
         private const float BOT_SIZE = 30f;
 
-        const float BOMB_SPAWN_DELAY = 1.5f;
-
-        float _bombTimer = 0;
+        bool _spawnedBomb = false;
 
         public HuntStrategy()
         {
@@ -31,6 +29,9 @@ namespace Bomber.Domain.Entities.Bots
         {
             base.Update(deltaTime);
 
+            if (_spawnedBomb)
+                return;
+
             Player target = Manager.GetClosestPlayer(CurrentBot);
 
             if (target.Id == Guid.Empty)
@@ -38,15 +39,11 @@ namespace Bomber.Domain.Entities.Bots
 
             float distance = (Math.Abs(target.Position.X - CurrentBot.Position.X) + Math.Abs(target.Position.Y - CurrentBot.Position.Y)) / TILE_SIZE;
 
-            _bombTimer += deltaTime;
-
-            if(_bombTimer >= BOMB_SPAWN_DELAY)
+            if (distance < 1f)
             {
-                if (distance < 1f)
-                {
-                    Manager.OnBombRequest?.Invoke(CurrentBot.Id);
-                    _bombTimer = 0;
-                }
+                _spawnedBomb = true;
+                Manager.OnBombRequest?.Invoke(CurrentBot.Id);
+                Manager.UpdateBotStrategy(CurrentBot);
             }
         }
 

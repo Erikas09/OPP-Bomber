@@ -12,19 +12,19 @@ using System.Numerics;
 
 namespace Bomber.Domain.Entities.Bots
 {
-    public class RunStrategy : BotStrategy
+    public class BombAvoidStrategy : BotStrategy
     {
         private const float TILE_SIZE = 40f;
         private const float BOT_SIZE = 30f;
 
         GridPosition target;
 
-        public RunStrategy()
+        public BombAvoidStrategy()
         {
             target = new(-1, -1);
         }
 
-        public RunStrategy(Bot bot)
+        public BombAvoidStrategy(Bot bot)
         {
             target = new(-1, -1);
             SetBot(bot);
@@ -78,7 +78,7 @@ namespace Bomber.Domain.Entities.Bots
             return positions.Where(p => p.X == botPosition.X && p.Y == botPosition.Y).Any();
         }
 
-        private List<GridPosition> ComputeExplosionCells(GridPosition origin,int radius)
+        List<GridPosition> ComputeExplosionCells(GridPosition origin,int radius)
         {
             List<GridPosition> cells = [origin];
 

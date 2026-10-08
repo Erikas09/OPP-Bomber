@@ -2,11 +2,11 @@
 
 public class Input
 {
-    public bool up;
-    public bool down;
-    public bool left;
-    public bool right;
-    public bool bombPressed;
+    public bool Up { set; get; }
+    public bool Down { set; get; }
+    public bool Left { set; get; }
+    public bool Right { set; get; }
+    public bool BombPressed { set; get; }
 }
 
 public interface IGameInput

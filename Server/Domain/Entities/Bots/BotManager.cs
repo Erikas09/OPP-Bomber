@@ -121,7 +121,7 @@ namespace Bomber.Domain.Entities.Bots
                 UpdateBotStrategy(bot.Value);
         }
 
-        void UpdateBotStrategy(Bot bot)
+        public void UpdateBotStrategy(Bot bot)
         {
             List<(BotStrategy, float)> strategies = new(GetAllStrategies(bot).Select(s => (s, s.GetWeight())));
 
@@ -153,7 +153,8 @@ namespace Bomber.Domain.Entities.Bots
             {
                 new HuntStrategy(bot),
                 new PowerUpStrategy(bot),
-                new RunStrategy(bot)
+                new BombAvoidStrategy(bot),
+                new ExploreStrategy(bot)
             };
         }
 
@@ -164,7 +165,7 @@ namespace Bomber.Domain.Entities.Bots
 
             foreach (var p in players)
             {
-                if (p.Value == player || p.Value is Bot)
+                if (p.Value == player || p.Value.State == Enums.PlayerState.Dead)
                     continue;
 
                 float distance = (p.Value.Position.X - player.Position.X) * (p.Value.Position.X - player.Position.X) +

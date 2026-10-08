@@ -2,7 +2,7 @@
 
 namespace Bomber.Client.Input;
 
-public sealed class ControllerInputAdapter : IGameInput, IDisposable
+public class ControllerInputAdapter : IGameInput, IDisposable
 {
     const float StickDeadZone = 0.25f;
 
@@ -24,7 +24,7 @@ public sealed class ControllerInputAdapter : IGameInput, IDisposable
         Initialize();
     }
 
-    private void Initialize()
+    void Initialize()
     {
         int result = SDL.SDL_Init(SDL.SDL_INIT_GAMECONTROLLER);
 
@@ -38,7 +38,7 @@ public sealed class ControllerInputAdapter : IGameInput, IDisposable
         FindController();
     }
 
-    private void FindController()
+    void FindController()
     {
         int joystickCount = SDL.SDL_NumJoysticks();
 
@@ -85,11 +85,11 @@ public sealed class ControllerInputAdapter : IGameInput, IDisposable
     {
         return new Input()
         {
-            up = up,
-            down = down,
-            left = left,
-            right = right,
-            bombPressed = bombPressed,
+            Up = up,
+            Down = down,
+            Left = left,
+            Right = right,
+            BombPressed = bombPressed
         };
     }
 
