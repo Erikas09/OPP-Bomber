@@ -31,6 +31,6 @@ public class BotDirector
         builder.SetBombLimit(1);
         builder.SetExplosionRadius(2);
         builder.SetSpeed(90f);
-        builder.SetStrategy(new HuntStrategy());
+        builder.SetStrategy(new ExploreStrategy());
     }
 }
