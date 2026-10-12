@@ -59,6 +59,11 @@ public sealed class GameServerConnection
         return _connection.InvokeAsync("PlaceBomb");
     }
 
+    public Task SendUndoAsync()
+    {
+        return _connection.InvokeAsync("UndoPlaceBomb");
+    }
+
     private void OnBombExploded(BombExplodedResponse explosion)
     {
         BombExploded?.Invoke(explosion);

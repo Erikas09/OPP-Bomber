@@ -92,6 +92,11 @@ public partial class Game : Form
             _ = PlaceBombAsync();
         }
 
+        if (input.Undo)
+        {
+            _ = UndoAsync();
+        }
+
         try
         {
             _sendingInput = true;
@@ -164,6 +169,18 @@ public partial class Game : Form
         catch
         {
             // Ignoruojam. Vistiek kitas tick atnaujins būseną
+        }
+    }
+
+    private async Task UndoAsync()
+    {
+        try
+        {
+            await _serverConnection.SendUndoAsync();
+        }
+        catch
+        {
+
         }
     }
 

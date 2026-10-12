@@ -7,6 +7,7 @@ public class Input
     public bool Left { set; get; }
     public bool Right { set; get; }
     public bool BombPressed { set; get; }
+    public bool Undo { set; get; }
 }
 
 public interface IGameInput

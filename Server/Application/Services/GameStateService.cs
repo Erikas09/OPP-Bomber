@@ -1,4 +1,5 @@
-﻿using Bomber.Application.Factories;
+﻿using Bomber.Application.Commands;
+using Bomber.Application.Factories;
 using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
@@ -9,6 +10,8 @@ using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 using Bomber.Domain.PowerUps;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Bomber.Application.Services;
 
@@ -23,6 +26,8 @@ public sealed class GameStateService
     private readonly Dictionary<Guid, Player> _players = [];
     private readonly Dictionary<Guid, Bomb> _bombs = [];
     private readonly Dictionary<Guid, Explosion> _explosions = [];
+
+    private readonly List<PlaceBombCommand> _commands = [];
 
     private readonly Map _map;
     private readonly GameEventPublisher _eventPublisher;
@@ -233,6 +238,19 @@ public sealed class GameStateService
         {
             player.PickUpPowerUp(powerUp);
             _map.RemovePowerUp(playerPos);
+
+            // 25% chance to spawn new powerup in random location
+            if (Random.Shared.NextDouble() < 0.25)
+            {
+                PowerUpPrototype clonedPowerUp = powerUp.Clone();
+                if (clonedPowerUp is PowerUp castedPowerUp)
+                {
+                    GridPosition pos = _map.GetRandomValidPosition();
+                    castedPowerUp.Move(pos);
+                    _map.AddPowerUp(castedPowerUp);
+                }
+
+            }
         }
     }
 
@@ -399,6 +417,25 @@ public sealed class GameStateService
 
             return true;
         }
+    }
+    public bool RemoveBomb(Guid bombId)
+    {
+        bool found = _bombs.TryGetValue(bombId, out Bomb? bomb);
+
+        if (!found || bomb is null)
+            return false;
+
+        _bombs.Remove(bombId);
+        return true;
+    }
+
+    public List<PlaceBombCommand> GetBombCommands()
+    {
+        return _commands;
+    }
+    public void AddBombCommand(PlaceBombCommand command)
+    {
+        _commands.Add(command);
     }
 
     private GridPosition GetPlayerGridPosition(Player player)

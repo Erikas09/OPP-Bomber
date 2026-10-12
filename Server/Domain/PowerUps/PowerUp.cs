@@ -1,4 +1,5 @@
-﻿using Bomber.Domain.Players;
+﻿using Bomber.Domain.Common;
+using Bomber.Domain.Players;
 using System.Windows.Input;
 
 namespace Bomber.Domain.PowerUps;
@@ -9,5 +10,11 @@ public abstract class PowerUp : PowerUpPrototype
     public int position_y;
     public abstract PowerUpPrototype Clone();
     public abstract void ApplyEffect(Player player);
+
+    public void Move(GridPosition pos)
+    {
+        position_x = pos.X;
+        position_y = pos.Y;
+    }
 
 }

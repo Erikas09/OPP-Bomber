@@ -134,6 +134,32 @@ public sealed class Map
         if (powerUp is not null)
             _powerUps.Remove(powerUp);
     }
+    public void AddPowerUp(PowerUp powerUp)
+    {
+        _powerUps.Add(powerUp);
+    }
+
+    public GridPosition GetRandomValidPosition()
+    {
+        while (true)
+        {
+            int x = Random.Shared.Next(Width);
+            int y = Random.Shared.Next(Height);
+
+            GridPosition position = new GridPosition(x, y);
+
+            if (!IsWalkable(position))
+                continue;
+
+            if (_cells[x, y] is not Floor)
+                continue;
+
+            if (GetPowerUpByPosition(position) is not null)
+                continue;
+
+            return position;
+        }
+    }
 
     public void DestroyWall(
         GridPosition position)

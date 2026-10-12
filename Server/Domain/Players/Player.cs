@@ -24,7 +24,6 @@ public class Player
     public PlayerInput Input { get; private set; }
     public float VelocityX { get; set; }
     public float VelocityY { get; set; }
-    List<IPowerUpCommand> commands = new List<IPowerUpCommand>();
 
     public Player(
         Guid id,
@@ -100,24 +99,6 @@ public class Player
     }
     public void PickUpPowerUp(PowerUp powerUp)
     {
-        IPowerUpCommand command = null;
-        
-        if (powerUp is SpeedPowerUp speedPowerUp)
-        {
-            command = new SpeedCommand(speedPowerUp);
-        }
-        else if(powerUp is BlastRadiusPowerUp radiusPowerUp)
-        {
-            command = new BlastRadiusCommand(radiusPowerUp);
-        }
-        else if(powerUp is ExtraBombPowerUp extraBombPowerUp)
-        {
-            command = new ExtraBombCommand(extraBombPowerUp);
-        }
-
-        if(command is not null)
-        {
-            command.Execute(this);
-        }       
+        powerUp.ApplyEffect(this);       
     }
 }

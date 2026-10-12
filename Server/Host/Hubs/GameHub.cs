@@ -1,5 +1,6 @@
 ﻿using Bomber.Application.Models;
 using Bomber.Application.Services;
+using Bomber.Application.Commands;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
@@ -289,14 +290,37 @@ public sealed class GameHub : Hub
         if (!found)
             return;
 
-        bool placed = _gameState.PlaceBomb(playerId, out Bomb? bomb);
+        PlaceBombCommand command = new PlaceBombCommand(_gameState, playerId);
+        bool placed = command.Execute(out Bomb? bomb);
 
         if (!placed || bomb is null)
             return;
 
+        _gameState.AddBombCommand(command);
+
         await BroadcastGameState();
 
         _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
+    }
+
+    public async Task UndoPlaceBomb()
+    {
+        bool found =_connections.TryGetPlayerId(Context.ConnectionId,out Guid playerId);
+
+        if (!found)
+            return;
+
+        List<PlaceBombCommand> commands = _gameState.GetBombCommands();
+
+        PlaceBombCommand latestCommand = commands.LastOrDefault(a => a.GetPlayerId() == playerId);
+
+        if (latestCommand is null)
+            return;
+
+        bool success = latestCommand.Undo();
+
+        if (success)
+            commands.Remove(latestCommand);
     }
 
     public async Task PlaceBotBomb(Guid playerId)

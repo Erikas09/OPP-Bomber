@@ -33,6 +33,7 @@ public class KeyboardInputAdapter : IGameInput
         input.Left = _pressedKeys.Contains(Keys.A) || _pressedKeys.Contains(Keys.Left);
         input.Right = _pressedKeys.Contains(Keys.D) || _pressedKeys.Contains(Keys.Right);
         input.BombPressed = _bombPressed;
+        input.Undo = _pressedKeys.Contains(Keys.Z);
         _bombPressed = false;
 
         return input;
