@@ -5,13 +5,13 @@ namespace Bomber.Domain.Builder;
 
 public interface IBotBuilder
 {
-    void Reset();
-    void SetPosition(Position position);
-    void SetLives(int lives);
-    void SetBombLimit(int bombLimit);
-    void SetExplosionRadius(int explosionRadius);
-    void SetSpeed(float speed);
-    void SetStrategy(BotStrategy strategy);
+    IBotBuilder Reset();
+    IBotBuilder SetPosition(Position position);
+    IBotBuilder SetLives(int lives);
+    IBotBuilder SetBombLimit(int bombLimit);
+    IBotBuilder SetExplosionRadius(int explosionRadius);
+    IBotBuilder SetSpeed(float speed);
+    IBotBuilder SetStrategy(BotStrategy strategy);
     Bot Build();
 
 }

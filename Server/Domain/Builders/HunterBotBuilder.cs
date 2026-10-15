@@ -13,7 +13,7 @@ public class HunterBotBuilder : IBotBuilder
 
     public HunterBotBuilder() => Reset();
 
-    public void Reset()
+    public IBotBuilder Reset()
     {
         position = new(0, 0);
         lives = 0;
@@ -21,36 +21,43 @@ public class HunterBotBuilder : IBotBuilder
         explosionRadius = 0;
         speed = 0;
         strategy = null!;
+        return this;
     }
 
-    public void SetPosition(Position position)
+    public IBotBuilder SetPosition(Position position)
     {
         this.position = position;
+        return this;
     }
 
-    public void SetLives(int lives)
+    public IBotBuilder SetLives(int lives)
     {
         this.lives = lives;
+        return this;
     }
 
-    public void SetBombLimit(int bombLimit)
+    public IBotBuilder SetBombLimit(int bombLimit)
     {
         this.bombLimit = bombLimit;
+        return this;
     }
 
-    public void SetExplosionRadius(int radius)
+    public IBotBuilder SetExplosionRadius(int radius)
     {
         explosionRadius = radius;
+        return this;
     }
 
-    public void SetSpeed(float speed)
+    public IBotBuilder SetSpeed(float speed)
     {
         this.speed = speed;
+        return this;
     }
 
-    public void SetStrategy(BotStrategy strategy)
+    public IBotBuilder SetStrategy(BotStrategy strategy)
     {
         this.strategy = strategy;
+        return this;
     }
 
     public Bot Build()

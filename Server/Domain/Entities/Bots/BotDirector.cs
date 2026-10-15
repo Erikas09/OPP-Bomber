@@ -6,31 +6,29 @@ namespace Bomber.Domain.Entities.Bots;
 
 public class BotDirector
 {
-    public void ConstructHunter(
-        IBotBuilder builder,
-        Position position)
+    public Bot ConstructHunter(IBotBuilder builder, Position position)
     {
-        builder.Reset();
-
-        builder.SetPosition(position);
-        builder.SetLives(3);
-        builder.SetBombLimit(2);
-        builder.SetExplosionRadius(3);
-        builder.SetSpeed(120f);
-        builder.SetStrategy(new HuntStrategy());
+        return builder
+            .Reset()
+            .SetPosition(position)
+            .SetLives(3)
+            .SetBombLimit(2)
+            .SetExplosionRadius(3)
+            .SetSpeed(120f)
+            .SetStrategy(new HuntStrategy())
+            .Build();
     }
 
-    public void ConstructDefender(
-        IBotBuilder builder,
-        Position position)
+    public Bot ConstructDefender(IBotBuilder builder, Position position)
     {
-        builder.Reset();
-
-        builder.SetPosition(position);
-        builder.SetLives(5);
-        builder.SetBombLimit(1);
-        builder.SetExplosionRadius(2);
-        builder.SetSpeed(90f);
-        builder.SetStrategy(new ExploreStrategy());
+        return builder
+            .Reset()
+            .SetPosition(position)
+            .SetLives(5)
+            .SetBombLimit(1)
+            .SetExplosionRadius(2)
+            .SetSpeed(90f)
+            .SetStrategy(new ExploreStrategy())
+            .Build();
     }
 }

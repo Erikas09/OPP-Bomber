@@ -76,27 +76,15 @@ namespace Bomber.Domain.Entities.Bots
         }
         public Bot CreateHunter(Position position)
         {
-            IBotBuilder builder = new HunterBotBuilder();
-
-            director.ConstructHunter(builder, position);
-
-            Bot bot = builder.Build();
-
+            Bot bot = director.ConstructHunter(new HunterBotBuilder(), position);
             bots.Add(bot.Id, bot);
-
             return bot;
         }
 
         public Bot CreateDefender(Position position)
         {
-            IBotBuilder builder = new DefenderBotBuilder();
-
-            director.ConstructDefender(builder, position);
-
-            Bot bot = builder.Build();
-
+            Bot bot = director.ConstructDefender(new DefenderBotBuilder(), position);
             bots.Add(bot.Id, bot);
-
             return bot;
         }
 
