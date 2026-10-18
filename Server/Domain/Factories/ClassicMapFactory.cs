@@ -1,7 +1,7 @@
 ﻿using Bomber.Domain.Common;
 using Bomber.Domain.Maps.Cells;
 
-namespace Bomber.Application.Factories;
+namespace Bomber.Domain.Factories;
 
 public class ClassicMapFactory : IMapFactory
 {

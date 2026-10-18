@@ -1,6 +1,6 @@
 ﻿using Bomber.Domain.Maps.Cells;
 
-namespace Bomber.Application.Factories
+namespace Bomber.Domain.Factories
 {
     public interface IMapFactory
     {

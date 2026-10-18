@@ -1,7 +1,7 @@
 ﻿using Bomber.Domain.Common;
 using Bomber.Domain.Entities.Bots;
 
-namespace Bomber.Domain.Builder;
+namespace Bomber.Domain.Builders;
 
 public interface IBotBuilder
 {

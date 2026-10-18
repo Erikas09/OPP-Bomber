@@ -1,4 +1,6 @@
 ﻿using Bomber.Domain.Common;
+using Bomber.Domain.Enums;
+using Bomber.Domain.Factories;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.PowerUps;
 
@@ -177,24 +179,19 @@ public sealed class Map
         else
             SetCell(new IceFloor(Guid.NewGuid(), position));
 
-        Random rnd = new Random();
-        int num = rnd.Next(1, 4);
+        int num = Random.Shared.Next(1, 4);
 
-        switch(num)
-        {
-            case 1:
-                ExtraBombPowerUp bombPowerUp = new ExtraBombPowerUp(1, position);
-                _powerUps.Add(bombPowerUp);
-                break;
-            case 2:               
-                BlastRadiusPowerUp radiusPowerUp = new BlastRadiusPowerUp(1, position);
-                _powerUps.Add(radiusPowerUp);
-                break;
-            case 3:
-                SpeedPowerUp speedPowerUp = new SpeedPowerUp(1.25f, position);
-                _powerUps.Add(speedPowerUp);
-                break;
-        }
-        
+        PowerUpType type =
+            num switch
+            {
+                1 => PowerUpType.ExtraBomb,
+                2 => PowerUpType.BlastRadius,
+                3 => PowerUpType.Speed,
+                _ => throw new InvalidOperationException(),
+            };
+
+        PowerUp powerUp = PowerUpFactory.CreatePowerUp(type, position);
+
+        _powerUps.Add(powerUp);
     }
 }

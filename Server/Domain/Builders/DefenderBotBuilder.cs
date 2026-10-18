@@ -1,5 +1,4 @@
-﻿using Bomber.Domain.Builder;
-using Bomber.Domain.Common;
+﻿using Bomber.Domain.Common;
 using Bomber.Domain.Entities.Bots;
 
 namespace Bomber.Domain.Builders;
