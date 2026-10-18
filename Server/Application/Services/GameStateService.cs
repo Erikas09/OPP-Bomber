@@ -10,8 +10,6 @@ using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 using Bomber.Domain.PowerUps;
-using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace Bomber.Application.Services;
 

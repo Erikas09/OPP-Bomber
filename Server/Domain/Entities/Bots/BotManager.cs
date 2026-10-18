@@ -1,10 +1,8 @@
 ﻿using Bomber.Domain.Bombs;
-using Bomber.Domain.Builder;
 using Bomber.Domain.Builders;
 using Bomber.Domain.Common;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Players;
-using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Entities.Bots
 {
