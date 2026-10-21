@@ -15,17 +15,17 @@ namespace Bomber.Host.Hubs;
 
 public sealed class GameHub : Hub
 {
-    private readonly GameStateService _gameState;
+    private readonly GameFacade _game;
     private readonly ConnectionRegistry _connections;
 
     public GameHub(
-        GameStateService gameState,
+        GameFacade game,
         ConnectionRegistry connections)
     {
-        _gameState = gameState;
+        _game = game;
         _connections = connections;
 
-        //_gameState.OnBombRequest += id => _ = PlaceBotBomb(id);
+        //_game.OnBombRequest += id => _ = PlaceBotBomb(id);
     }
 
     public override async Task OnConnectedAsync()
@@ -36,11 +36,11 @@ public sealed class GameHub : Hub
 
         string playerName = $"Player {playerId.ToString()[..4]}";
 
-        _gameState.AddPlayer(playerId, playerName);
+        _game.AddPlayer(playerId, playerName);
 
         await Clients.Caller.SendAsync("PlayerAssigned", playerId);
 
-        await BroadcastGameState();
+        await Broadcastgame();
 
         await base.OnConnectedAsync();
     }
@@ -52,9 +52,9 @@ public sealed class GameHub : Hub
 
         if (found)
         {
-            _gameState.RemovePlayer(playerId);
+            _game.RemovePlayer(playerId);
 
-            await BroadcastGameState();
+            await Broadcastgame();
         }
 
         await base.OnDisconnectedAsync(
@@ -77,16 +77,16 @@ public sealed class GameHub : Hub
             request.Left,
             request.Right);
 
-        _gameState.SetPlayerInput(
+        _game.SetPlayerInput(
             playerId,
             input);
 
         return Task.CompletedTask;
     }
 
-    private async Task BroadcastGameState()
+    private async Task Broadcastgame()
     {
-        Map map = _gameState.GetMap();
+        Map map = _game.GetMap();
 
         List<MapCellResponse> cells = CreateMapCellResponses(map);
         List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
@@ -95,7 +95,7 @@ public sealed class GameHub : Hub
         List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
         List<ExplosionResponse> explosions = CreateExplosionResponses();
 
-        GameStateResponse response =
+        gameResponse response =
             new(
                 map.Width,
                 map.Height,
@@ -106,12 +106,12 @@ public sealed class GameHub : Hub
                 powerUps,
                 explosions);
 
-        await Clients.All.SendAsync("GameStateUpdated", response);
+        await Clients.All.SendAsync("gameUpdated", response);
     }
 
     private List<BombResponse> CreateBombResponses()
     {
-        List<Bomb> bombs = _gameState.GetBombs();
+        List<Bomb> bombs = _game.GetBombs();
 
         List<BombResponse> responses = [];
 
@@ -133,7 +133,7 @@ public sealed class GameHub : Hub
 
     private List<ExplosionResponse> CreateExplosionResponses()
     {
-        List<Explosion> explosions = _gameState.GetExplosions();
+        List<Explosion> explosions = _game.GetExplosions();
 
         List<ExplosionResponse> responses = [];
 
@@ -201,7 +201,7 @@ public sealed class GameHub : Hub
 
     private List<PlayerStateResponse> CreatePlayerResponses()
     {
-        List<Player> players = _gameState.GetPlayers();
+        List<Player> players = _game.GetPlayers();
 
         List<PlayerStateResponse> responses = [];
 
@@ -290,11 +290,11 @@ public sealed class GameHub : Hub
         if (!found)
             return;
 
-        PlaceBombCommand command = new PlaceBombCommand(_gameState, playerId);
+        PlaceBombCommand command = new PlaceBombCommand(_game, playerId);
         bool placed = command.Execute();
 
         if(placed)
-            _gameState.AddBombCommand(command);
+            _game.AddBombCommand(command);
 
         //_ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
     }
@@ -306,7 +306,7 @@ public sealed class GameHub : Hub
         if (!found)
             return;
 
-        List<PlaceBombCommand> commands = _gameState.GetBombCommands();
+        List<PlaceBombCommand> commands = _game.GetBombCommands();
 
         PlaceBombCommand latestCommand = commands.LastOrDefault(a => a.GetPlayerId() == playerId);
 

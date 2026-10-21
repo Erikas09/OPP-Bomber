@@ -20,7 +20,7 @@ internal static class Startup
 
         builder.Services.AddSingleton(sp =>
             GameStateBroadcaster.GetInstance(
-                sp.GetRequiredService<GameStateService>(),
+                sp.GetRequiredService<GameFacade>(),
                 sp.GetRequiredService<IHubContext<GameHub>>()));
 
         builder.Services.AddSingleton<GameLoopRunner>();

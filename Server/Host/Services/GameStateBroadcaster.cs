@@ -12,31 +12,31 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Bomber.Host.Services;
 
-public sealed class GameStateBroadcaster
+public sealed class gameBroadcaster
 {
-    private static GameStateBroadcaster? _instance;
+    private static gameBroadcaster? _instance;
     private static readonly object _lock = new();
 
-    private readonly GameStateService _gameState;
+    private readonly GameFacade _game;
     private readonly IHubContext<GameHub> _hub;
 
-    private GameStateBroadcaster(
-        GameStateService gameState,
+    private gameBroadcaster(
+        GameFacade game,
         IHubContext<GameHub> hub)
     {
-        _gameState = gameState;
+        _game = game;
         _hub = hub;
     }
 
-    public static GameStateBroadcaster GetInstance(
-        GameStateService gameState,
+    public static gameBroadcaster GetInstance(
+        GameFacade game,
         IHubContext<GameHub> hub)
     {
         if (_instance is null)
         {
             lock (_lock)
             {
-                _instance ??= new GameStateBroadcaster(gameState, hub);
+                _instance ??= new gameBroadcaster(game, hub);
             }
         }
 
@@ -46,7 +46,7 @@ public sealed class GameStateBroadcaster
     public async Task BroadcastAsync(
         CancellationToken cancellationToken = default)
     {
-        Map map = _gameState.GetMap();
+        Map map = _game.GetMap();
 
         List<MapCellResponse> cells = CreateMapCellResponses(map);
 
@@ -72,7 +72,7 @@ public sealed class GameStateBroadcaster
                 explosions);
 
         await _hub.Clients.All.SendAsync(
-            "GameStateUpdated",
+            "gameUpdated",
             response,
             cancellationToken);
     }
@@ -80,7 +80,7 @@ public sealed class GameStateBroadcaster
     private List<PlayerStateResponse> CreatePlayerResponses()
     {
         List<Player> players =
-            _gameState.GetPlayers();
+            _game.GetPlayers();
 
         List<PlayerStateResponse> responses = [];
 
@@ -105,7 +105,7 @@ public sealed class GameStateBroadcaster
     private List<BombResponse> CreateBombResponses()
     {
         List<Bomb> bombs =
-            _gameState.GetBombs();
+            _game.GetBombs();
 
         List<BombResponse> responses = [];
 
@@ -215,7 +215,7 @@ public sealed class GameStateBroadcaster
 
     private List<ExplosionResponse> CreateExplosionResponses()
     {
-        List<Explosion> explosions = _gameState.GetExplosions();
+        List<Explosion> explosions = _game.GetExplosions();
 
         List<ExplosionResponse> responses = [];
 

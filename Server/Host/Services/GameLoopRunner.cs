@@ -7,10 +7,10 @@ public sealed class GameLoopRunner
     private const double TickDuration = 1.0 / 60.0;
     private const double SnapshotInterval = 1.0 / 20.0;
 
-    private readonly GameStateService _game;
+    private readonly GameFacade _game;
     private readonly GameStateBroadcaster _broadcaster;
 
-    public GameLoopRunner(GameStateService game, GameStateBroadcaster broadcaster)
+    public GameLoopRunner(GameFacade game, GameStateBroadcaster broadcaster)
     {
         _game = game;
         _broadcaster = broadcaster;

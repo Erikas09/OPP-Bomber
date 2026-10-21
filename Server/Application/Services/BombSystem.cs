@@ -1,4 +1,5 @@
-﻿using Bomber.Application.Publishers;
+﻿using Bomber.Application.Commands;
+using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
@@ -18,6 +19,7 @@ namespace Bomber.Application.Services
 
         private readonly Dictionary<Guid, Bomb> _bombs = [];
         private readonly Dictionary<Guid, Explosion> _explosions = [];
+        private readonly List<PlaceBombCommand> _commands = [];
 
         readonly PlayerSystem _players;
         readonly Map _map;
@@ -254,6 +256,16 @@ namespace Bomber.Application.Services
         public List<Explosion> GetExplosions()
         {
             return [.. _explosions.Values];
+        }
+
+        public List<PlaceBombCommand> GetBombCommands()
+        {
+            return _commands;
+        }
+
+        public void AddBombCommand(PlaceBombCommand command)
+        {
+            _commands.Add(command);
         }
     }
 }

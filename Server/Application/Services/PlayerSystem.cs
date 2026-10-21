@@ -79,6 +79,12 @@ namespace Bomber.Application.Services
             }
         }
 
+        public void SetPlayerInput(Guid playerId, PlayerInput input)
+        {
+            if (_players.TryGetValue(playerId, out Player? value))
+                value.SetInput(input);
+        }
+
         public List<Player> GetPlayers()
         {
             lock (_lock)

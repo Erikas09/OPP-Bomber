@@ -13,18 +13,15 @@ using Bomber.Domain.PowerUps;
 
 namespace Bomber.Application.Services;
 
-public sealed class GameStateService
+public sealed class GameFacade
 {
     private readonly Lock _lock = new();
-
-    private readonly List<PlaceBombCommand> _commands = [];
-
     private readonly PlayerSystem _players;
     private readonly BombSystem _bombs;
     private readonly Map _map;
     private readonly GameEventPublisher _eventPublisher;
 
-    public GameStateService(GameEventPublisher eventPublisher)
+    public GameFacade(GameEventPublisher eventPublisher)
     {
         _eventPublisher = eventPublisher;
 
@@ -69,16 +66,11 @@ public sealed class GameStateService
         return _players.GetPlayers();
     }
 
-    public void SetPlayerInput(
-        Guid playerId,
-        PlayerInput input)
+    public void SetPlayerInput(Guid playerId, PlayerInput input)
     {
         lock (_lock)
         {
-            if (!_players.AllPlayers.ContainsKey(playerId))
-                return;
-
-            _players.AllPlayers[playerId].SetInput(input);
+            _players.SetPlayerInput(playerId, input);
         }
     }
 
@@ -109,12 +101,12 @@ public sealed class GameStateService
 
     public List<PlaceBombCommand> GetBombCommands()
     {
-        return _commands;
+        return _bombs.GetBombCommands();
     }
 
     public void AddBombCommand(PlaceBombCommand command)
     {
-        _commands.Add(command);
+        _bombs.AddBombCommand(command);
     }
 
     public List<Bomb> GetBombsToExplode(DateTimeOffset now)
