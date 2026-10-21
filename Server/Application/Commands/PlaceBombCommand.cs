@@ -9,11 +9,11 @@ namespace Bomber.Application.Commands
 {
     public class PlaceBombCommand : IBombCommand
     {
-        private readonly GameStateService gameStateService;
+        private readonly GameFacade gameStateService;
         private readonly Guid playerId;
         private Guid? bombId;
 
-        public PlaceBombCommand(GameStateService service, Guid playerId)
+        public PlaceBombCommand(GameFacade service, Guid playerId)
         {
             this.gameStateService = service;
             this.playerId = playerId;
