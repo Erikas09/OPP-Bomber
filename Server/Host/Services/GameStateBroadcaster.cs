@@ -12,15 +12,15 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Bomber.Host.Services;
 
-public sealed class gameBroadcaster
+public sealed class GameStateBroadcaster
 {
-    private static gameBroadcaster? _instance;
+    private static GameStateBroadcaster? _instance;
     private static readonly object _lock = new();
 
     private readonly GameFacade _game;
     private readonly IHubContext<GameHub> _hub;
 
-    private gameBroadcaster(
+    private GameStateBroadcaster(
         GameFacade game,
         IHubContext<GameHub> hub)
     {
@@ -28,7 +28,7 @@ public sealed class gameBroadcaster
         _hub = hub;
     }
 
-    public static gameBroadcaster GetInstance(
+    public static GameStateBroadcaster GetInstance(
         GameFacade game,
         IHubContext<GameHub> hub)
     {
@@ -36,7 +36,7 @@ public sealed class gameBroadcaster
         {
             lock (_lock)
             {
-                _instance ??= new gameBroadcaster(game, hub);
+                _instance ??= new GameStateBroadcaster(game, hub);
             }
         }
 
@@ -72,7 +72,7 @@ public sealed class gameBroadcaster
                 explosions);
 
         await _hub.Clients.All.SendAsync(
-            "gameUpdated",
+            "GameStateUpdated",
             response,
             cancellationToken);
     }

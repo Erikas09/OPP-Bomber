@@ -95,7 +95,7 @@ public sealed class GameHub : Hub
         List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
         List<ExplosionResponse> explosions = CreateExplosionResponses();
 
-        gameResponse response =
+        GameStateResponse response =
             new(
                 map.Width,
                 map.Height,
