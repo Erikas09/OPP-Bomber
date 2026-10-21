@@ -8,7 +8,7 @@ namespace Bomber.Application.Commands
 {
     internal interface IBombCommand
     {
-        public abstract bool Execute(out Bomb? bomb);
+        public abstract bool Execute();
         public abstract bool Undo();
     }
 }

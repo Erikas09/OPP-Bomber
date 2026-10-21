@@ -19,9 +19,9 @@ namespace Bomber.Application.Commands
             this.playerId = playerId;
         }
         
-        public bool Execute(out Bomb? bomb)
+        public bool Execute()
         {
-            bool success = gameStateService.PlaceBomb(playerId, out bomb);
+            bool success = gameStateService.PlaceBomb(playerId, out Bomb? bomb);
 
             if (success && bomb is not null)
                 this.bombId = bomb.Id;

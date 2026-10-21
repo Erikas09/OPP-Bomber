@@ -25,7 +25,7 @@ public sealed class GameHub : Hub
         _gameState = gameState;
         _connections = connections;
 
-        _gameState.OnBombRequest += id => _ = PlaceBotBomb(id);
+        //_gameState.OnBombRequest += id => _ = PlaceBotBomb(id);
     }
 
     public override async Task OnConnectedAsync()
@@ -291,16 +291,12 @@ public sealed class GameHub : Hub
             return;
 
         PlaceBombCommand command = new PlaceBombCommand(_gameState, playerId);
-        bool placed = command.Execute(out Bomb? bomb);
+        bool placed = command.Execute();
 
-        if (!placed || bomb is null)
-            return;
+        if(placed)
+            _gameState.AddBombCommand(command);
 
-        _gameState.AddBombCommand(command);
-
-        await BroadcastGameState();
-
-        _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
+        //_ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
     }
 
     public async Task UndoPlaceBomb()
@@ -321,28 +317,5 @@ public sealed class GameHub : Hub
 
         if (success)
             commands.Remove(latestCommand);
-    }
-
-    public async Task PlaceBotBomb(Guid playerId)
-    {
-        bool placed = _gameState.PlaceBomb(playerId, out Bomb? bomb);
-
-        if (!placed || bomb is null)
-            return;
-
-        //await BroadcastGameState();
-
-        _ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
-    }
-
-    private async Task ScheduleExplosion(
-        Guid bombId,
-        int fuseSeconds)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(fuseSeconds));
-
-        _gameState.ExplodeBomb(bombId);
-
-        await BroadcastGameState();
     }
 }

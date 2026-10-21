@@ -3,7 +3,7 @@ using Bomber.Domain.Entities.Bots;
 
 namespace Bomber.Domain.Builders;
 
-internal class DefenderBotBuilder : IBotBuilder
+public class DefenderBotBuilder : IBotBuilder
 {
     private Position position;
     private int lives;

@@ -6,6 +6,8 @@ namespace Bomber.Domain.Players;
 
 public class Player
 {
+    public const float PlayerSize = 30f;
+
     public Guid Id { get; }
 
     public string Name { get; private set; }

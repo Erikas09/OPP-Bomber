@@ -53,8 +53,7 @@ namespace Bomber.Domain.Entities.Bots
             }
         }
 
-        public static void Initialize(
-                
+        public static void Initialize(               
                 Map map,
                 Dictionary<Guid, Player> players)
         {
@@ -151,7 +150,7 @@ namespace Bomber.Domain.Entities.Bots
 
             foreach (var p in players)
             {
-                if (p.Value == player || p.Value.State == Enums.PlayerState.Dead)
+                if (p.Value == player || p.Value.State == Domain.Enums.PlayerState.Dead)
                     continue;
 
                 float distance = (p.Value.Position.X - player.Position.X) * (p.Value.Position.X - player.Position.X) +
