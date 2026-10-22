@@ -41,7 +41,10 @@ public static class DependencyInjection
                 return publisher;
             });
 
-        services.AddSingleton<GameFacade>();
+        services.AddSingleton<GameFacadeFactory>();
+
+        services.AddSingleton<GameFacade>(sp =>
+            sp.GetRequiredService<GameFacadeFactory>().Create());
 
         return services;
     }

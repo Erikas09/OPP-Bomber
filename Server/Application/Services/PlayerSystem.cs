@@ -13,9 +13,6 @@ namespace Bomber.Application.Services
 {
     public sealed class PlayerSystem
     {
-
-        private readonly Lock _lock = new();
-
         private readonly Dictionary<Guid, Player> _players = [];
         readonly Map _map;
 
@@ -46,24 +43,21 @@ namespace Bomber.Application.Services
 
         public void AddPlayer(Guid playerId, string playerName, SpawnPoint spawnPoint)
         {
-            lock (_lock)
-            {
-                if (_players.ContainsKey(playerId))
-                    return;
+            if (_players.ContainsKey(playerId))
+                return;
 
-                Position position = Map.GridToWorldPosition(spawnPoint.Position, Player.PlayerSize);
+            Position position = Map.GridToWorldPosition(spawnPoint.Position, Player.PlayerSize);
 
-                Player player = new(
-                    playerId,
-                    playerName,
-                    position,
-                    lives: 3,
-                    bombLimit: 1,
-                    explosionRadius: 1,
-                    speed: 120f);
+            Player player = new(
+                playerId,
+                playerName,
+                position,
+                lives: 3,
+                bombLimit: 1,
+                explosionRadius: 1,
+                speed: 120f);
 
-                _players.Add(playerId, player);
-            }
+            _players.Add(playerId, player);
         }
 
         public void AddPlayer(Player player)
@@ -73,10 +67,7 @@ namespace Bomber.Application.Services
 
         public void RemovePlayer(Guid playerId)
         {
-            lock (_lock)
-            {
-                _players.Remove(playerId);
-            }
+            _players.Remove(playerId);
         }
 
         public void SetPlayerInput(Guid playerId, PlayerInput input)
@@ -87,8 +78,7 @@ namespace Bomber.Application.Services
 
         public List<Player> GetPlayers()
         {
-            lock (_lock)
-                return [.. _players.Values];
+            return [.. _players.Values];
         }
 
         public void Update(float deltaTime)

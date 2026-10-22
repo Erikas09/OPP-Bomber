@@ -19,21 +19,12 @@ public sealed class GameFacade
     private readonly PlayerSystem _players;
     private readonly BombSystem _bombs;
     private readonly Map _map;
-    private readonly GameEventPublisher _eventPublisher;
 
-    public GameFacade(GameEventPublisher eventPublisher)
+    public GameFacade(Map map, PlayerSystem players, BombSystem bombs)
     {
-        _eventPublisher = eventPublisher;
-
-        _map = Map.CreateTestMap(Map.MapType.Classic);
-        _players = new PlayerSystem(_map);
-        _bombs = new(_map, _players, _eventPublisher);
-
-        BotManager.Initialize(_map, _players.AllPlayers);
-        BotManager.Instance.OnBombRequest += id => PlaceBomb(id, out _);
-        BotManager.Instance.GetBombList = GetBombs;
-
-        SetGame();
+        _map = map;
+        _players = players;
+        _bombs = bombs;
     }
 
     public void SetGame()
@@ -43,22 +34,31 @@ public sealed class GameFacade
 
     public void AddPlayer(Guid playerId, string playerName)
     {
-        SpawnPoint? spawnpoint = _map.GetSpawnPoint(_players.PlayerCount);
+        lock (_lock)
+        {
+            SpawnPoint? spawnpoint = _map.GetSpawnPoint(_players.PlayerCount);
 
-        if (spawnpoint == null)
-            return;
+            if (spawnpoint == null)
+                return;
 
-        _players.AddPlayer(playerId, playerName, spawnpoint);
+            _players.AddPlayer(playerId, playerName, spawnpoint);
+        }
     }
 
     public void AddPlayer(Player player)
     {
-        _players.AddPlayer(player);
+        lock (_lock)
+        {
+            _players.AddPlayer(player);
+        }
     }
 
     public void RemovePlayer(Guid playerId)
     {
-        _players.RemovePlayer(playerId);
+        lock (_lock)
+        {
+            _players.RemovePlayer(playerId);
+        }
     }
 
     public List<Player> GetPlayers()
@@ -76,7 +76,16 @@ public sealed class GameFacade
 
     public bool PlaceBomb(Guid playerId, out IBomb? bomb)
     {
-        return _bombs.PlaceBomb(_players.AllPlayers[playerId], out bomb);
+        lock (_lock)
+        {
+            if (!_players.AllPlayers.TryGetValue(playerId, out var player))
+            {
+                bomb = null;
+                return false;
+            }
+
+            return _bombs.PlaceBomb(player, out bomb);
+        }
     }
 
     public void DetonateBombs(Guid playerId)
@@ -107,7 +116,10 @@ public sealed class GameFacade
 
     public bool RemoveBomb(Guid bombId)
     {
-        return _bombs.RemoveBomb(bombId);
+        lock (_lock)
+        {
+            return _bombs.RemoveBomb(bombId);
+        }
     }
 
     public void Update(float deltaTime)
@@ -132,7 +144,10 @@ public sealed class GameFacade
 
     public void AddBombCommand(PlaceBombCommand command)
     {
-        _bombs.AddBombCommand(command);
+        lock (_lock)
+        {
+            _bombs.AddBombCommand(command);
+        }
     }
 
     public List<IBomb> GetBombsToExplode(DateTimeOffset now)
