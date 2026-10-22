@@ -1,4 +1,4 @@
-﻿namespace Bomber.Client.Input;
+namespace Bomber.Client.Input;
 
 public class Input
 {
@@ -8,6 +8,10 @@ public class Input
     public bool Right { set; get; }
     public bool BombPressed { set; get; }
     public bool Undo { set; get; }
+    public bool TogglePiercing { set; get; }
+    public bool ToggleMegaBlast { set; get; }
+    public bool ToggleRemoteDetonation { set; get; }
+    public bool DetonatePressed { set; get; }
 }
 
 public interface IGameInput

@@ -1,4 +1,4 @@
-﻿using Bomber.Application.Commands;
+using Bomber.Application.Commands;
 using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
@@ -74,9 +74,35 @@ public sealed class GameFacade
         }
     }
 
-    public bool PlaceBomb(Guid playerId, out Bomb? bomb)
+    public bool PlaceBomb(Guid playerId, out IBomb? bomb)
     {
         return _bombs.PlaceBomb(_players.AllPlayers[playerId], out bomb);
+    }
+
+    public void DetonateBombs(Guid playerId)
+    {
+        _bombs.DetonatePlayerBombs(playerId);
+    }
+
+    public bool TogglePlayerPiercing(Guid playerId)
+    {
+        if (_players.AllPlayers.TryGetValue(playerId, out Player? player))
+            return player.TogglePiercingBombs();
+        return false;
+    }
+
+    public bool TogglePlayerMegaBlast(Guid playerId)
+    {
+        if (_players.AllPlayers.TryGetValue(playerId, out Player? player))
+            return player.ToggleMegaBlastBombs();
+        return false;
+    }
+
+    public bool TogglePlayerRemoteDetonation(Guid playerId)
+    {
+        if (_players.AllPlayers.TryGetValue(playerId, out Player? player))
+            return player.ToggleRemoteDetonationBombs();
+        return false;
     }
 
     public bool RemoveBomb(Guid bombId)
@@ -109,12 +135,12 @@ public sealed class GameFacade
         _bombs.AddBombCommand(command);
     }
 
-    public List<Bomb> GetBombsToExplode(DateTimeOffset now)
+    public List<IBomb> GetBombsToExplode(DateTimeOffset now)
     {
         return _bombs.GetBombsToExplode(now);
     }
 
-    public List<Bomb> GetBombs()
+    public List<IBomb> GetBombs()
     {
         return _bombs.GetBombs();
     }

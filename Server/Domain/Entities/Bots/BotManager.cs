@@ -1,4 +1,4 @@
-﻿using Bomber.Domain.Bombs;
+using Bomber.Domain.Bombs;
 using Bomber.Domain.Builders;
 using Bomber.Domain.Common;
 using Bomber.Domain.Maps;
@@ -23,7 +23,7 @@ namespace Bomber.Domain.Entities.Bots
         public Map GameMap { private set; get; }
         Random rng;
 
-        public delegate List<Bomb> GetBombListHandler();
+        public delegate List<IBomb> GetBombListHandler();
         public GetBombListHandler GetBombList;
         public delegate void OnBombRequestHandler(Guid id);
         public OnBombRequestHandler OnBombRequest;

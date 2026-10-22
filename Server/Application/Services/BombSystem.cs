@@ -1,4 +1,4 @@
-﻿using Bomber.Application.Commands;
+using Bomber.Application.Commands;
 using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
@@ -17,7 +17,8 @@ namespace Bomber.Application.Services
     {
         const float ExplosionDurationSeconds = 0.5f;
 
-        private readonly Dictionary<Guid, Bomb> _bombs = [];
+        // ── Uses IBomb interface to support both plain bombs and decorated bombs ──
+        private readonly Dictionary<Guid, IBomb> _bombs = [];
         private readonly Dictionary<Guid, Explosion> _explosions = [];
         private readonly List<PlaceBombCommand> _commands = [];
 
@@ -34,7 +35,7 @@ namespace Bomber.Application.Services
 
         public void Update(float deltaTime)
         {
-            List<Bomb> bombs = new(_bombs.Values);
+            List<IBomb> bombs = new(_bombs.Values);
 
             foreach (var bomb in bombs)
                 UpdateBomb(bomb);
@@ -46,7 +47,7 @@ namespace Bomber.Application.Services
 
         }
 
-        void UpdateBomb(Bomb bomb)
+        void UpdateBomb(IBomb bomb)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
 
@@ -62,7 +63,7 @@ namespace Bomber.Application.Services
                 _explosions.Remove(explosion.Id);
         }
 
-        public bool PlaceBomb(Player player, out Bomb? bomb)
+        public bool PlaceBomb(Player player, out IBomb? bomb)
         {
             bomb = null;
             
@@ -84,21 +85,60 @@ namespace Bomber.Application.Services
             if (occupied)
                 return false;
 
-            bomb = new Bomb(
-                Guid.NewGuid(),
-                player.Id,
-                position,
-                player.ExplosionRadius,
-                fuseSeconds: 3);
+            // Uses the player's composed decorator chain
+            bomb = player.CreateDecoratedBomb(Guid.NewGuid(), position);
 
             _bombs.Add(bomb.Id, bomb);
 
             return true;
         }
 
+        /// <summary>
+        /// Detonates all remote-detonation bombs placed by the specified player.
+        /// Uses the IBomb.TryDetonate() polymorphic method on the decorator chain.
+        /// </summary>
+        public void DetonatePlayerBombs(Guid playerId)
+        {
+            List<IBomb> bombsToDetonate = _bombs.Values
+                .Where(b => b.OwnerId == playerId)
+                .ToList();
+
+            foreach (var bomb in bombsToDetonate)
+            {
+                if (bomb.TryDetonate())
+                {
+                    // If bomb was detonated, trigger explosion immediately
+                    ExplodeBomb(bomb);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Places a pre-built (potentially decorated) bomb onto the map.
+        /// The client code is responsible for composing decorators before calling this.
+        /// </summary>
+        public bool PlaceDecoratedBomb(Player player, IBomb decoratedBomb)
+        {
+            if (player.State == PlayerState.Dead)
+                return false;
+
+            int activeBombs = _bombs.Values.Count(b => b.OwnerId == player.Id);
+
+            if (activeBombs >= player.BombLimit)
+                return false;
+
+            bool occupied = _bombs.Values.Any(b => b.Position == decoratedBomb.Position);
+
+            if (occupied)
+                return false;
+
+            _bombs.Add(decoratedBomb.Id, decoratedBomb);
+            return true;
+        }
+
         public bool RemoveBomb(Guid bombId)
         {
-            bool found = _bombs.TryGetValue(bombId, out Bomb? bomb);
+            bool found = _bombs.TryGetValue(bombId, out IBomb? bomb);
 
             if (!found || bomb is null)
                 return false;
@@ -107,14 +147,15 @@ namespace Bomber.Application.Services
             return true;
         }
 
-        public List<GridPosition> ExplodeBomb(Bomb bomb)
+        public List<GridPosition> ExplodeBomb(IBomb bomb)
         {
             List<GameEvent> events = [];
             List<GridPosition> affectedCells;
 
             _bombs.Remove(bomb.Id);
 
-            affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius);
+            // Decorator-aware: uses bomb.IsPiercing to decide wall behavior
+            affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius, bomb.IsPiercing);
 
             DateTimeOffset occurredAt = DateTimeOffset.UtcNow;
 
@@ -167,7 +208,7 @@ namespace Bomber.Application.Services
             return affectedCells;
         }
 
-        void DamagePlayers(Bomb bomb, Explosion explosion, List<GameEvent> events)
+        void DamagePlayers(IBomb bomb, Explosion explosion, List<GameEvent> events)
         {
             foreach (Player player in _players.AllPlayers.Values)
             {
@@ -205,7 +246,13 @@ namespace Bomber.Application.Services
             }
         }
 
-        private List<GridPosition> ComputeExplosionCells(GridPosition origin, int radius)
+        /// <summary>
+        /// Computes which cells are hit by an explosion.
+        /// When piercing is true (from PiercingBombDecorator), the explosion
+        /// passes through destructible walls instead of stopping.
+        /// </summary>
+        private List<GridPosition> ComputeExplosionCells(
+            GridPosition origin, int radius, bool piercing = false)
         {
             List<GridPosition> cells = [origin];
 
@@ -230,12 +277,15 @@ namespace Bomber.Application.Services
 
                     MapCell cell = _map.GetCell(current);
 
+                    // Indestructible walls always stop the explosion
                     if (cell is IndestructibleWall)
                         break;
 
                     cells.Add(current);
 
-                    if (cell is DestructibleWall)
+                    // Piercing bombs go through destructible walls;
+                    // normal bombs stop after hitting one
+                    if (cell is DestructibleWall && !piercing)
                         break;
                 }
             }
@@ -243,12 +293,12 @@ namespace Bomber.Application.Services
             return cells;
         }
 
-        public List<Bomb> GetBombsToExplode(DateTimeOffset now)
+        public List<IBomb> GetBombsToExplode(DateTimeOffset now)
         {
             return [.. _bombs.Values.Where(b => b.ShouldExplode(now))];
         }
 
-        public List<Bomb> GetBombs()
+        public List<IBomb> GetBombs()
         {
             return [.. _bombs.Values];
         }

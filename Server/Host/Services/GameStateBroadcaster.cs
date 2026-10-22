@@ -1,4 +1,4 @@
-﻿using Bomber.Application.Models;
+using Bomber.Application.Models;
 using Bomber.Application.Services;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
@@ -104,12 +104,12 @@ public sealed class GameStateBroadcaster
 
     private List<BombResponse> CreateBombResponses()
     {
-        List<Bomb> bombs =
+        List<IBomb> bombs =
             _game.GetBombs();
 
         List<BombResponse> responses = [];
 
-        foreach (Bomb bomb in bombs)
+        foreach (IBomb bomb in bombs)
         {
             responses.Add(
                 new BombResponse(

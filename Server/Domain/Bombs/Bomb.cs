@@ -1,8 +1,12 @@
-﻿using Bomber.Domain.Common;
+using Bomber.Domain.Common;
 
 namespace Bomber.Domain.Bombs;
 
-public sealed class Bomb
+/// <summary>
+/// Concrete component — the basic bomb with default behavior.
+/// This is the primary object that decorators will wrap.
+/// </summary>
+public class Bomb : IBomb
 {
     public Guid Id { get; }
 
@@ -15,6 +19,10 @@ public sealed class Bomb
     public DateTimeOffset PlacedAt { get; }
 
     public int FuseSeconds { get; }
+
+    public virtual bool IsPiercing => false;
+
+    public virtual bool IsRemoteDetonation => false;
 
     public Bomb(
         Guid id,
@@ -31,8 +39,18 @@ public sealed class Bomb
         PlacedAt = DateTimeOffset.UtcNow;
     }
 
-    public bool ShouldExplode(DateTimeOffset now)
+    public virtual bool ShouldExplode(DateTimeOffset now)
     {
         return now >= PlacedAt.AddSeconds(FuseSeconds);
+    }
+
+    public virtual string GetDescription()
+    {
+        return "Basic Bomb";
+    }
+
+    public virtual bool TryDetonate()
+    {
+        return false;
     }
 }

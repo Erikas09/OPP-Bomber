@@ -1,4 +1,4 @@
-﻿using Bomber.Client.Contexts;
+using Bomber.Client.Contexts;
 using Bomber.Client.Input;
 using Bomber.Client.Models;
 using Bomber.Client.Network;
@@ -75,7 +75,17 @@ public partial class Game : Form
     {
         await _serverConnection.ConnectAsync();
 
+        UpdateTitle();
         _inputTimer.Start();
+    }
+
+    private bool _piercingActive;
+    private bool _megaBlastActive;
+    private bool _remoteActive;
+
+    private void UpdateTitle()
+    {
+        Text = $"Bomber | [1] Piercing: {(_piercingActive ? "ON" : "OFF")} | [2] MegaBlast: {(_megaBlastActive ? "ON" : "OFF")} | [3] Remote: {(_remoteActive ? "ON" : "OFF")} | [E] Detonate";
     }
 
     async void UpdateInput(object? sender, EventArgs e)
@@ -86,6 +96,29 @@ public partial class Game : Form
         _input.Update();
 
         Input.Input input = _input.GetInput();
+
+        if (input.TogglePiercing)
+        {
+            _piercingActive = await _serverConnection.TogglePiercingAsync();
+            UpdateTitle();
+        }
+
+        if (input.ToggleMegaBlast)
+        {
+            _megaBlastActive = await _serverConnection.ToggleMegaBlastAsync();
+            UpdateTitle();
+        }
+
+        if (input.ToggleRemoteDetonation)
+        {
+            _remoteActive = await _serverConnection.ToggleRemoteDetonationAsync();
+            UpdateTitle();
+        }
+
+        if (input.DetonatePressed)
+        {
+            _ = _serverConnection.SendDetonateBombsAsync();
+        }
 
         if (input.BombPressed)
         {

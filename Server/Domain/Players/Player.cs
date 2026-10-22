@@ -1,4 +1,5 @@
-﻿using Bomber.Domain.Common;
+using Bomber.Domain.Bombs;
+using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.PowerUps;
 
@@ -99,6 +100,49 @@ public class Player
     {
         return this.BombLimit;
     }
+    public bool HasPiercingBombs { get; set; }
+    public bool HasMegaBlastBombs { get; set; }
+    public bool HasRemoteDetonationBombs { get; set; }
+
+    public bool TogglePiercingBombs() => HasPiercingBombs = !HasPiercingBombs;
+    public bool ToggleMegaBlastBombs() => HasMegaBlastBombs = !HasMegaBlastBombs;
+    public bool ToggleRemoteDetonationBombs() => HasRemoteDetonationBombs = !HasRemoteDetonationBombs;
+
+    /// <summary>
+    /// Composes a bomb wrapped with all decorators currently active for this player.
+    /// Supports 3+ decorator layers (Piercing, MegaBlast, RemoteDetonation).
+    /// </summary>
+    public IBomb CreateDecoratedBomb(Guid bombId, GridPosition position)
+    {
+        // Base concrete component
+        IBomb bomb = new Bomb(
+            bombId,
+            Id,
+            position,
+            ExplosionRadius,
+            fuseSeconds: 3);
+
+        // Decorator Layer 1: Piercing
+        if (HasPiercingBombs)
+        {
+            bomb = new PiercingBombDecorator(bomb);
+        }
+
+        // Decorator Layer 2: Mega Blast (doubles the blast radius)
+        if (HasMegaBlastBombs)
+        {
+            bomb = new MegaBlastBombDecorator(bomb, multiplier: 2);
+        }
+
+        // Decorator Layer 3: Remote Detonation (disables fuse timer, detonates on command)
+        if (HasRemoteDetonationBombs)
+        {
+            bomb = new RemoteDetonationBombDecorator(bomb);
+        }
+
+        return bomb;
+    }
+
     public void PickUpPowerUp(PowerUp powerUp)
     {
         powerUp.ApplyEffect(this);       

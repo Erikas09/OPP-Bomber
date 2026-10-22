@@ -1,4 +1,4 @@
-﻿using Bomber.Domain.Bombs;
+using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
@@ -72,7 +72,7 @@ namespace Bomber.Domain.Entities.Bots
             return 0;
         }
 
-        bool IsInRadius(Bomb bomb, GridPosition botPosition)
+        bool IsInRadius(IBomb bomb, GridPosition botPosition)
         {
             List<GridPosition> positions = ComputeExplosionCells(bomb.Position, bomb.Radius);
             return positions.Where(p => p.X == botPosition.X && p.Y == botPosition.Y).Any();

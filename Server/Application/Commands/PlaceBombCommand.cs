@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Bomber.Domain.Bombs;
@@ -21,7 +21,7 @@ namespace Bomber.Application.Commands
         
         public bool Execute()
         {
-            bool success = gameStateService.PlaceBomb(playerId, out Bomb? bomb);
+            bool success = gameStateService.PlaceBomb(playerId, out IBomb? bomb);
 
             if (success && bomb is not null)
                 this.bombId = bomb.Id;

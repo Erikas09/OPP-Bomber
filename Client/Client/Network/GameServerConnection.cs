@@ -1,4 +1,4 @@
-﻿using Bomber.Client.Models;
+using Bomber.Client.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Bomber.Client.Network;
@@ -62,6 +62,26 @@ public sealed class GameServerConnection
     public Task SendUndoAsync()
     {
         return _connection.InvokeAsync("UndoPlaceBomb");
+    }
+
+    public Task<bool> TogglePiercingAsync()
+    {
+        return _connection.InvokeAsync<bool>("TogglePiercing");
+    }
+
+    public Task<bool> ToggleMegaBlastAsync()
+    {
+        return _connection.InvokeAsync<bool>("ToggleMegaBlast");
+    }
+
+    public Task<bool> ToggleRemoteDetonationAsync()
+    {
+        return _connection.InvokeAsync<bool>("ToggleRemoteDetonation");
+    }
+
+    public Task SendDetonateBombsAsync()
+    {
+        return _connection.InvokeAsync("DetonateBombs");
     }
 
     private void OnBombExploded(BombExplodedResponse explosion)

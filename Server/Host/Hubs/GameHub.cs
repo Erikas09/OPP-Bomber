@@ -1,4 +1,4 @@
-﻿using Bomber.Application.Models;
+using Bomber.Application.Models;
 using Bomber.Application.Services;
 using Bomber.Application.Commands;
 using Bomber.Domain.Bombs;
@@ -111,11 +111,11 @@ public sealed class GameHub : Hub
 
     private List<BombResponse> CreateBombResponses()
     {
-        List<Bomb> bombs = _game.GetBombs();
+        List<IBomb> bombs = _game.GetBombs();
 
         List<BombResponse> responses = [];
 
-        foreach (Bomb bomb in bombs)
+        foreach (IBomb bomb in bombs)
         {
             BombResponse response =
                 new(
@@ -317,5 +317,43 @@ public sealed class GameHub : Hub
 
         if (success)
             commands.Remove(latestCommand);
+    }
+
+    public Task<bool> TogglePiercing()
+    {
+        bool found = _connections.TryGetPlayerId(Context.ConnectionId, out Guid playerId);
+        if (!found)
+            return Task.FromResult(false);
+
+        return Task.FromResult(_game.TogglePlayerPiercing(playerId));
+    }
+
+    public Task<bool> ToggleMegaBlast()
+    {
+        bool found = _connections.TryGetPlayerId(Context.ConnectionId, out Guid playerId);
+        if (!found)
+            return Task.FromResult(false);
+
+        return Task.FromResult(_game.TogglePlayerMegaBlast(playerId));
+    }
+
+    public Task<bool> ToggleRemoteDetonation()
+    {
+        bool found = _connections.TryGetPlayerId(Context.ConnectionId, out Guid playerId);
+        if (!found)
+            return Task.FromResult(false);
+
+        return Task.FromResult(_game.TogglePlayerRemoteDetonation(playerId));
+    }
+
+    public Task DetonateBombs()
+    {
+        bool found = _connections.TryGetPlayerId(Context.ConnectionId, out Guid playerId);
+        if (found)
+        {
+            _game.DetonateBombs(playerId);
+        }
+
+        return Task.CompletedTask;
     }
 }
