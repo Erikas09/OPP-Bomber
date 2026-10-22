@@ -282,21 +282,16 @@ public sealed class GameHub : Hub
 
     public async Task PlaceBomb()
     {
-        bool found =
-            _connections.TryGetPlayerId(
-                Context.ConnectionId,
-                out Guid playerId);
+        bool found = _connections.TryGetPlayerId(Context.ConnectionId, out Guid playerId);
 
         if (!found)
             return;
 
-        PlaceBombCommand command = new PlaceBombCommand(_game, playerId);
+        PlaceBombCommand command = new(_game, playerId);
         bool placed = command.Execute();
 
         if(placed)
             _game.AddBombCommand(command);
-
-        //_ = ScheduleExplosion(bomb.Id, bomb.FuseSeconds);
     }
 
     public async Task UndoPlaceBomb()
