@@ -1,15 +1,8 @@
 using Bomber.Application.Commands;
-using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
-using Bomber.Domain.Common;
 using Bomber.Domain.Entities.Bots;
-using Bomber.Domain.Enums;
-using Bomber.Domain.Events;
-using Bomber.Domain.Factories;
 using Bomber.Domain.Maps;
-using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
-using Bomber.Domain.PowerUps;
 
 namespace Bomber.Application.Services;
 

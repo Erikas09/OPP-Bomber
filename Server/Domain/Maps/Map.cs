@@ -1,8 +1,8 @@
 ﻿using Bomber.Domain.Common;
+using Bomber.Domain.Common.Interfaces;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Factories;
 using Bomber.Domain.Maps.Cells;
-using Bomber.Domain.Players;
 using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Maps;
@@ -42,7 +42,7 @@ public sealed class Map
         Height = height;
 
         _cells = new MapCell[width, height];
-        
+
         _powerUps = new List<PowerUp>();
     }
 
@@ -63,17 +63,29 @@ public sealed class Map
         _cells[cell.Position.X, cell.Position.Y] = cell;
     }
 
+    public IIterator<MapCell> CreateMapCellIterator()
+    {
+        return new MapCellIterator(this);
+    }
+
+    public IIterator<PowerUp> CreatePowerUpIterator()
+    {
+        return new PowerUpIterator([.. _powerUps]);
+    }
+
     public List<GridPosition> GetAllWalkablePositions()
     {
         List<GridPosition> positions = new();
 
-        for(int x = 0; x < Width; x++)
-            for(int y = 0; y < Height; y++)
-            {
-                GridPosition position = new(x, y);
-                if (IsWalkable(position))
-                    positions.Add(position);
-            }
+        IIterator<MapCell> iterator = CreateMapCellIterator();
+
+        while (iterator.HasNext())
+        {
+            MapCell cell = iterator.Next();
+
+            if (cell.IsWalkable)
+                positions.Add(cell.Position);
+        }
 
         return positions;
     }
@@ -171,10 +183,10 @@ public sealed class Map
     {
         return _powerUps;
     }
-    
+
     public PowerUp? GetPowerUpByPosition(GridPosition position)
     {
-        foreach(PowerUp powerUp in _powerUps)
+        foreach (PowerUp powerUp in _powerUps)
         {
             if (powerUp.position_x == position.X && powerUp.position_y == position.Y)
                 return powerUp;

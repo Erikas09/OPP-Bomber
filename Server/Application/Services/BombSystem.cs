@@ -7,9 +7,6 @@ using Bomber.Domain.Events;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Bomber.Application.Services
 {

@@ -1,18 +1,19 @@
-﻿using Bomber.Domain.Common;
+﻿using Bomber.Application.Iterators;
+using Bomber.Domain.Common;
+using Bomber.Domain.Common.Interfaces;
 using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 using Bomber.Domain.PowerUps;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Bomber.Application.Services
 {
     public sealed class PlayerSystem
     {
+        private readonly Lock _lock = new();
+
         private readonly Dictionary<Guid, Player> _players = [];
         readonly Map _map;
 
@@ -26,7 +27,7 @@ namespace Bomber.Application.Services
 
         public void SpawnBots(List<SpawnPoint> spawnPoints)
         {
-            for(int i=0; i < spawnPoints.Count; i++)
+            for (int i = 0; i < spawnPoints.Count; i++)
             {
                 Position position = Map.GridToWorldPosition(spawnPoints[i].Position, Player.PlayerSize);
 
@@ -43,21 +44,24 @@ namespace Bomber.Application.Services
 
         public void AddPlayer(Guid playerId, string playerName, SpawnPoint spawnPoint)
         {
-            if (_players.ContainsKey(playerId))
-                return;
+            lock (_lock)
+            {
+                if (_players.ContainsKey(playerId))
+                    return;
 
-            Position position = Map.GridToWorldPosition(spawnPoint.Position, Player.PlayerSize);
+                Position position = Map.GridToWorldPosition(spawnPoint.Position, Player.PlayerSize);
 
-            Player player = new(
-                playerId,
-                playerName,
-                position,
-                lives: 3,
-                bombLimit: 1,
-                explosionRadius: 1,
-                speed: 120f);
+                Player player = new(
+                    playerId,
+                    playerName,
+                    position,
+                    lives: 3,
+                    bombLimit: 1,
+                    explosionRadius: 1,
+                    speed: 120f);
 
-            _players.Add(playerId, player);
+                _players.Add(playerId, player);
+            }
         }
 
         public void AddPlayer(Player player)
@@ -67,7 +71,10 @@ namespace Bomber.Application.Services
 
         public void RemovePlayer(Guid playerId)
         {
-            _players.Remove(playerId);
+            lock (_lock)
+            {
+                _players.Remove(playerId);
+            }
         }
 
         public void SetPlayerInput(Guid playerId, PlayerInput input)
@@ -78,13 +85,24 @@ namespace Bomber.Application.Services
 
         public List<Player> GetPlayers()
         {
-            return [.. _players.Values];
+            lock (_lock)
+                return [.. _players.Values];
+        }
+
+        public IIterator<Player> CreatePlayerIterator()
+        {
+            lock (_lock)
+                return new PlayerIterator(new Dictionary<Guid, Player>(_players));
         }
 
         public void Update(float deltaTime)
         {
-            foreach (Player player in _players.Values)
+            IIterator<Player> iterator = CreatePlayerIterator();
+
+            while (iterator.HasNext())
             {
+                Player player = iterator.Next();
+
                 if (player.State == PlayerState.Dead)
                     continue;
 

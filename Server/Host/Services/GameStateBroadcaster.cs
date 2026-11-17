@@ -1,7 +1,7 @@
 using Bomber.Application.Models;
 using Bomber.Application.Services;
 using Bomber.Domain.Bombs;
-using Bomber.Domain.Common;
+using Bomber.Domain.Common.Interfaces;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
@@ -104,8 +104,7 @@ public sealed class GameStateBroadcaster
 
     private List<BombResponse> CreateBombResponses()
     {
-        List<IBomb> bombs =
-            _game.GetBombs();
+        List<IBomb> bombs = _game.GetBombs();
 
         List<BombResponse> responses = [];
 
@@ -128,25 +127,21 @@ public sealed class GameStateBroadcaster
     {
         List<MapCellResponse> responses = [];
 
-        for (int x = 0; x < map.Width; x++)
+        IIterator<MapCell> iterator = map.CreateMapCellIterator();
+
+        while (iterator.HasNext())
         {
-            for (int y = 0; y < map.Height; y++)
-            {
-                GridPosition position = new(x, y);
+            MapCell cell = iterator.Next();
 
-                MapCell cell =
-                    map.GetCell(position);
+            MapCellType type =
+                GetMapCellType(cell);
 
-                MapCellType type =
-                    GetMapCellType(cell);
-
-                responses.Add(
-                    new MapCellResponse(
-                        cell.Id,
-                        cell.Position.X,
-                        cell.Position.Y,
-                        type));
-            }
+            responses.Add(
+                new MapCellResponse(
+                    cell.Id,
+                    cell.Position.X,
+                    cell.Position.Y,
+                    type));
         }
 
         return responses;
@@ -172,9 +167,11 @@ public sealed class GameStateBroadcaster
     private static List<PowerUpResponse> CreatePowerUpResponses(Map map)
     {
         List<PowerUpResponse> responses = [];
-        List<PowerUp> powerUps = map.GetPowerUps();
-        foreach (PowerUp powerUp in powerUps)
+        IIterator<PowerUp> iterator = map.CreatePowerUpIterator();
+
+        while (iterator.HasNext())
         {
+            PowerUp powerUp = iterator.Next();
             PowerUpType type = GetPowerUpType(powerUp);
             PowerUpResponse response = new PowerUpResponse(powerUp.Id, powerUp.position_x, powerUp.position_y, type);
             responses.Add(response);
