@@ -1,16 +1,12 @@
-﻿using Bomber.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Bomber.Domain.Maps.Cells
+﻿namespace Bomber.Domain.Maps.Cells
 {
     public class IceFloor : Floor
     {
-        public IceFloor(Guid id, GridPosition position) : base(id, position) 
+        public IceFloor()
         {
+            Name = "Ice floor";
+            Theme = Map.MapType.Ice;
             walkingSpeedModifier = 1.5f;
         }
-
     }
 }

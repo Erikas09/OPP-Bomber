@@ -183,7 +183,7 @@ namespace Bomber.Application.Services
                 if (mapCell is not DestructibleWall)
                     continue;
 
-                Guid wallId = mapCell.Id;
+                Guid wallId = _map.GetTile(cell).Id;
 
                 _map.DestroyWall(cell);
 

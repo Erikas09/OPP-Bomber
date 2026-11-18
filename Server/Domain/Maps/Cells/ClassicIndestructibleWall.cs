@@ -1,13 +1,13 @@
-﻿using Bomber.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Bomber.Domain.Maps.Cells
+﻿namespace Bomber.Domain.Maps.Cells
 {
     public class ClassicIndestructibleWall : IndestructibleWall
     {
-        public ClassicIndestructibleWall(Guid id, GridPosition position) : base(id, position) { }
+        public ClassicIndestructibleWall()
+        {
+            Name = "Classic indestructible wall";
+            Theme = Map.MapType.Classic;
+        }
+
         public override bool CanBeDestroyed => true;
     }
 }

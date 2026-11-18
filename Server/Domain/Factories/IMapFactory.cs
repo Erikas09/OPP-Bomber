@@ -2,10 +2,13 @@
 
 namespace Bomber.Domain.Factories
 {
+    // Abstract Factory: creates a family (Classic / Ice) of map cells.
+    // Cells are shared flyweights, so no position is passed here;
+    // the position (extrinsic state) is stored in MapTile.
     public interface IMapFactory
     {
-        Floor CreateFloor(int x,int y);
-        IndestructibleWall CreateIndestructibleWall(int x, int y);
-        DestructibleWall CreateDestructibleWall(int x, int y);
+        Floor CreateFloor();
+        IndestructibleWall CreateIndestructibleWall();
+        DestructibleWall CreateDestructibleWall();
     }
 }

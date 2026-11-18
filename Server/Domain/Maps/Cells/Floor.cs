@@ -1,12 +1,9 @@
-﻿using Bomber.Domain.Common;
-
-namespace Bomber.Domain.Maps.Cells;
+﻿namespace Bomber.Domain.Maps.Cells;
 
 public abstract class Floor : MapCell
 {
-    public Floor(Guid id,GridPosition position): base(id, position){
-    }
-    
     public override bool IsWalkable => true;
-    public float walkingSpeedModifier;
+
+    // Read-only after construction: this object is shared by many tiles (Flyweight).
+    public float walkingSpeedModifier { get; protected init; } = 1f;
 }

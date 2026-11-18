@@ -162,15 +162,15 @@ public sealed class GameHub : Hub
             {
                 GridPosition position = new(x, y);
 
-                MapCell cell = map.GetCell(position);
+                MapTile tile = map.GetTile(position);
 
-                MapCellType type = GetMapCellType(cell);
+                MapCellType type = GetMapCellType(tile.Cell);
 
                 MapCellResponse response =
                     new(
-                        cell.Id,
-                        cell.Position.X,
-                        cell.Position.Y,
+                        tile.Id,
+                        tile.Position.X,
+                        tile.Position.Y,
                         type);
 
                 responses.Add(response);

@@ -1,6 +1,7 @@
 ﻿using Bomber.Application.Publishers;
 using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Maps;
+using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services;
@@ -17,6 +18,8 @@ public sealed class GameFacadeFactory
     public GameFacade Create()
     {
         var map = Map.CreateTestMap(Map.MapType.Classic);
+        Console.WriteLine(
+            $"[Flyweight] {map.Width * map.Height} map tiles share {MapCellFlyweightFactory.CachedCount} cell objects");
         var players = new PlayerSystem(map);
         var bombs = new BombSystem(map, players, _eventPublisher);
         BotManager.Initialize(map, players.AllPlayers);

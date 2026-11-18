@@ -1,12 +1,11 @@
-﻿using Bomber.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Bomber.Domain.Maps.Cells
+﻿namespace Bomber.Domain.Maps.Cells
 {
     public class IceDestructibleWall : DestructibleWall
     {
-        public IceDestructibleWall(Guid id, GridPosition position) : base(id, position) { }
+        public IceDestructibleWall()
+        {
+            Name = "Ice destructible wall";
+            Theme = Map.MapType.Ice;
+        }
     }
 }

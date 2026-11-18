@@ -16,7 +16,9 @@ public sealed class Map
     }
 
     private const int TileSize = 40;
-    private readonly MapCell[,] _cells;
+    // Flyweight client: each MapTile (context) holds its own position/id
+    // and points to a shared MapCell flyweight.
+    private readonly MapTile[,] _tiles;
     private readonly List<SpawnPoint> _spawnPoints = [];
     private readonly List<PowerUp> _powerUps;
 
@@ -41,7 +43,7 @@ public sealed class Map
         Width = width;
         Height = height;
 
-        _cells = new MapCell[width, height];
+        _tiles = new MapTile[width, height];
 
         _powerUps = new List<PowerUp>();
     }
@@ -52,18 +54,32 @@ public sealed class Map
         if (!IsInsideMap(position))
             throw new ArgumentOutOfRangeException(nameof(position));
 
-        return _cells[position.X, position.Y];
+        return _tiles[position.X, position.Y].Cell;
     }
 
-    public void SetCell(MapCell cell)
+    public MapTile GetTile(
+        GridPosition position)
     {
-        if (!IsInsideMap(cell.Position))
-            throw new ArgumentOutOfRangeException(nameof(cell));
+        if (!IsInsideMap(position))
+            throw new ArgumentOutOfRangeException(nameof(position));
 
-        _cells[cell.Position.X, cell.Position.Y] = cell;
+        return _tiles[position.X, position.Y];
     }
 
-    public IIterator<MapCell> CreateMapCellIterator()
+    public void SetCell(GridPosition position, MapCell cell)
+    {
+        if (!IsInsideMap(position))
+            throw new ArgumentOutOfRangeException(nameof(position));
+
+        _tiles[position.X, position.Y] = new MapTile(position, cell);
+    }
+
+    public void SetCell(int x, int y, MapCell cell)
+    {
+        SetCell(new GridPosition(x, y), cell);
+    }
+
+    public IIterator<MapTile> CreateMapCellIterator()
     {
         return new MapCellIterator(this);
     }
@@ -77,14 +93,14 @@ public sealed class Map
     {
         List<GridPosition> positions = new();
 
-        IIterator<MapCell> iterator = CreateMapCellIterator();
+        IIterator<MapTile> iterator = CreateMapCellIterator();
 
         while (iterator.HasNext())
         {
-            MapCell cell = iterator.Next();
+            MapTile tile = iterator.Next();
 
-            if (cell.IsWalkable)
-                positions.Add(cell.Position);
+            if (tile.IsWalkable)
+                positions.Add(tile.Position);
         }
 
         return positions;
@@ -96,7 +112,7 @@ public sealed class Map
         if (!IsInsideMap(position))
             return false;
 
-        return _cells[position.X, position.Y].IsWalkable;
+        return _tiles[position.X, position.Y].IsWalkable;
     }
 
     public bool IsWalkable(Position position, float size)
@@ -218,7 +234,7 @@ public sealed class Map
             if (!IsWalkable(position))
                 continue;
 
-            if (_cells[x, y] is not Floor)
+            if (_tiles[x, y].Cell is not Floor)
                 continue;
 
             if (GetPowerUpByPosition(position) is not null)
@@ -240,9 +256,9 @@ public sealed class Map
             return;
 
         if (cell is ClassicDestructibleWall)
-            SetCell(new ClassicFloor(Guid.NewGuid(), position));
+            SetCell(position, MapCellFlyweightFactory.Get<ClassicFloor>());
         else
-            SetCell(new IceFloor(Guid.NewGuid(), position));
+            SetCell(position, MapCellFlyweightFactory.Get<IceFloor>());
 
         int num = Random.Shared.Next(1, 4);
 
@@ -296,29 +312,29 @@ public sealed class Map
 
         for (int x = 0; x < map.Width; x++)
             for (int y = 0; y < map.Height; y++)
-                map.SetCell(factory.CreateFloor(x, y));
+                map.SetCell(x, y, factory.CreateFloor());
 
         for (int x = 0; x < map.Width; x++)
         {
-            map.SetCell(factory.CreateIndestructibleWall(x, 0));
-            map.SetCell(factory.CreateIndestructibleWall(x, map.Height - 1));
+            map.SetCell(x, 0, factory.CreateIndestructibleWall());
+            map.SetCell(x, map.Height - 1, factory.CreateIndestructibleWall());
         }
 
         for (int y = 0; y < map.Height; y++)
         {
-            map.SetCell(factory.CreateIndestructibleWall(0, y));
-            map.SetCell(factory.CreateIndestructibleWall(map.Width - 1, y));
+            map.SetCell(0, y, factory.CreateIndestructibleWall());
+            map.SetCell(map.Width - 1, y, factory.CreateIndestructibleWall());
         }
 
         for (int x = 2; x < map.Width - 1; x += 2)
             for (int y = 2; y < map.Height - 1; y += 2)
-                map.SetCell(factory.CreateIndestructibleWall(x, y));
+                map.SetCell(x, y, factory.CreateIndestructibleWall());
 
-        map.SetCell(factory.CreateDestructibleWall(3, 1));
-        map.SetCell(factory.CreateDestructibleWall(4, 1));
-        map.SetCell(factory.CreateDestructibleWall(5, 3));
-        map.SetCell(factory.CreateDestructibleWall(7, 5));
-        map.SetCell(factory.CreateDestructibleWall(9, 7));
+        map.SetCell(3, 1, factory.CreateDestructibleWall());
+        map.SetCell(4, 1, factory.CreateDestructibleWall());
+        map.SetCell(5, 3, factory.CreateDestructibleWall());
+        map.SetCell(7, 5, factory.CreateDestructibleWall());
+        map.SetCell(9, 7, factory.CreateDestructibleWall());
 
         map.AddSpawnPoint(
             new SpawnPoint(

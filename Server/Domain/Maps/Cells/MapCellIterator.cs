@@ -4,7 +4,7 @@ using Bomber.Domain.Maps;
 
 namespace Bomber.Domain.Maps.Cells;
 
-public sealed class MapCellIterator : IIterator<MapCell>
+public sealed class MapCellIterator : IIterator<MapTile>
 {
     private readonly Map _map;
 
@@ -21,13 +21,13 @@ public sealed class MapCellIterator : IIterator<MapCell>
         return _x < _map.Width;
     }
 
-    public MapCell Next()
+    public MapTile Next()
     {
         if (!HasNext())
             throw new InvalidOperationException("No more map cells.");
 
         GridPosition position = new(_x, _y);
-        MapCell cell = _map.GetCell(position);
+        MapTile tile = _map.GetTile(position);
 
         _y++;
 
@@ -37,7 +37,7 @@ public sealed class MapCellIterator : IIterator<MapCell>
             _x++;
         }
 
-        return cell;
+        return tile;
     }
 
     public void Reset()

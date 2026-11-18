@@ -1,22 +1,21 @@
-﻿using Bomber.Domain.Common;
-using Bomber.Domain.Maps.Cells;
+﻿using Bomber.Domain.Maps.Cells;
 
 namespace Bomber.Domain.Factories;
 
 public class IceMapFactory : IMapFactory
 {
-    public DestructibleWall CreateDestructibleWall(int x, int y)
+    public DestructibleWall CreateDestructibleWall()
     {
-        return new IceDestructibleWall(Guid.NewGuid(), new GridPosition(x, y));
+        return MapCellFlyweightFactory.Get<IceDestructibleWall>();
     }
 
-    public Floor CreateFloor(int x, int y)
+    public Floor CreateFloor()
     {
-        return new IceFloor(Guid.NewGuid(), new GridPosition(x,y));
+        return MapCellFlyweightFactory.Get<IceFloor>();
     }
 
-    public IndestructibleWall CreateIndestructibleWall(int x, int y)
+    public IndestructibleWall CreateIndestructibleWall()
     {
-        return new IceIndestructibleWall(Guid.NewGuid(), new GridPosition(x, y));
+        return MapCellFlyweightFactory.Get<IceIndestructibleWall>();
     }
 }

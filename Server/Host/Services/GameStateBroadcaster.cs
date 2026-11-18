@@ -127,20 +127,20 @@ public sealed class GameStateBroadcaster
     {
         List<MapCellResponse> responses = [];
 
-        IIterator<MapCell> iterator = map.CreateMapCellIterator();
+        IIterator<MapTile> iterator = map.CreateMapCellIterator();
 
         while (iterator.HasNext())
         {
-            MapCell cell = iterator.Next();
+            MapTile tile = iterator.Next();
 
             MapCellType type =
-                GetMapCellType(cell);
+                GetMapCellType(tile.Cell);
 
             responses.Add(
                 new MapCellResponse(
-                    cell.Id,
-                    cell.Position.X,
-                    cell.Position.Y,
+                    tile.Id,
+                    tile.Position.X,
+                    tile.Position.Y,
                     type));
         }
 
