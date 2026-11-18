@@ -79,9 +79,9 @@ public sealed class Map
         SetCell(new GridPosition(x, y), cell);
     }
 
-    public IIterator<MapTile> CreateMapCellIterator()
+    public IIterator<MapTile> CreateMapTileIterator()
     {
-        return new MapCellIterator(this);
+        return new MapTileIterator(this);
     }
 
     public IIterator<PowerUp> CreatePowerUpIterator()
@@ -93,7 +93,7 @@ public sealed class Map
     {
         List<GridPosition> positions = new();
 
-        IIterator<MapTile> iterator = CreateMapCellIterator();
+        IIterator<MapTile> iterator = CreateMapTileIterator();
 
         while (iterator.HasNext())
         {

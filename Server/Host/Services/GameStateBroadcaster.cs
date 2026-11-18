@@ -127,7 +127,7 @@ public sealed class GameStateBroadcaster
     {
         List<MapCellResponse> responses = [];
 
-        IIterator<MapTile> iterator = map.CreateMapCellIterator();
+        IIterator<MapTile> iterator = map.CreateMapTileIterator();
 
         while (iterator.HasNext())
         {
