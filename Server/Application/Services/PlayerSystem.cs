@@ -3,6 +3,7 @@ using Bomber.Domain.Common;
 using Bomber.Domain.Common.Interfaces;
 using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Enums;
+using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
@@ -10,7 +11,7 @@ using Bomber.Domain.PowerUps;
 
 namespace Bomber.Application.Services
 {
-    public sealed class PlayerSystem
+    public sealed class PlayerSystem : IGameObject
     {
         private readonly Lock _lock = new();
 
@@ -110,10 +111,7 @@ namespace Bomber.Application.Services
             }
         }
 
-        private void UpdatePlayer(
-    Player player,
-    PlayerInput input,
-    float deltaTime)
+        private void UpdatePlayer(Player player, PlayerInput input, float deltaTime)
         {
             float movementX = 0f;
             float movementY = 0f;

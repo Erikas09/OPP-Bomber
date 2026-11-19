@@ -1,5 +1,6 @@
 ﻿using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
+using Bomber.Domain.Game;
 using Bomber.Domain.Players;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace Bomber.Domain.Entities.Bots
 {
-    public class Bot : Player
+    public class Bot : Player, IGameObject
     {
         BotStrategy strategy;
 

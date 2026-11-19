@@ -4,13 +4,14 @@ using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Events;
+using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services
 {
-    public sealed class BombSystem
+    public sealed class BombSystem : IGameObject
     {
         const float ExplosionDurationSeconds = 0.5f;
 

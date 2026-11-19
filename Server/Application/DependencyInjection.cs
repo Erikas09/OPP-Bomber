@@ -1,6 +1,7 @@
 ﻿using Bomber.Application.Observers;
 using Bomber.Application.Publishers;
 using Bomber.Application.Services;
+using Bomber.Domain.Game;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bomber.Application;
@@ -45,6 +46,9 @@ public static class DependencyInjection
 
         services.AddSingleton<GameFacade>(sp =>
             sp.GetRequiredService<GameFacadeFactory>().Create());
+
+        services.AddSingleton<GameWorld>(sp =>
+            sp.GetRequiredService<GameFacadeFactory>().CreateWorld());
 
         return services;
     }

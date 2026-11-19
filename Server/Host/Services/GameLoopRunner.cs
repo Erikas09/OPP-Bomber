@@ -1,4 +1,5 @@
 ﻿using Bomber.Application.Services;
+using Bomber.Domain.Game;
 using Bomber.Host.Services;
 using System.Diagnostics;
 
@@ -7,12 +8,12 @@ public sealed class GameLoopRunner
     private const double TickDuration = 1.0 / 60.0;
     private const double SnapshotInterval = 1.0 / 20.0;
 
-    private readonly GameFacade _game;
+    private readonly GameWorld _world;
     private readonly GameStateBroadcaster _broadcaster;
 
-    public GameLoopRunner(GameFacade game, GameStateBroadcaster broadcaster)
+    public GameLoopRunner(GameWorld world, GameStateBroadcaster broadcaster)
     {
-        _game = game;
+        _world = world;
         _broadcaster = broadcaster;
     }
 
@@ -39,7 +40,7 @@ public sealed class GameLoopRunner
 
             while (accumulator >= TickDuration)
             {
-                _game.Update((float)TickDuration);
+                _world.Update((float)TickDuration);
 
                 accumulator -= TickDuration;
             }
