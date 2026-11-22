@@ -12,8 +12,7 @@ public partial class Game : Form
     private readonly ClientGameState _gameState;
     private readonly GameRenderer _renderer;
 
-    private readonly System.Windows.Forms.Timer _renderTimer =
-        new() { Interval = 50 };
+    private readonly System.Windows.Forms.Timer _renderTimer = new() { Interval = 50 };
     private readonly System.Windows.Forms.Timer _inputTimer;
     private readonly IGameInput _input;
     private Guid? _localPlayerId;
@@ -155,8 +154,7 @@ public partial class Game : Form
         _localPlayerId = playerId;
     }
 
-    private void OnGameStateUpdated(
-        GameStateResponse response)
+    private void OnGameStateUpdated(GameStateResponse response)
     {
         if (IsDisposed)
             return;

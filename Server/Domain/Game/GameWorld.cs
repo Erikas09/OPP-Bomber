@@ -6,7 +6,7 @@ namespace Bomber.Domain.Game
 {
     public class GameWorld : IGameObject
     {
-        private readonly List<IGameObject> _gameObjects = [];
+        List<IGameObject> _gameObjects = [];
 
         public void Add(IGameObject component)
         {

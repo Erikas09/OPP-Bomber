@@ -219,7 +219,10 @@ public sealed class GameHub : Hub
                     player.BombLimit,
                     player.ExplosionRadius,
                     player.Speed,
-                    isAlive);
+                    isAlive,
+                    player.IsMoving,
+                    player.MoveDirection,
+                    player.IsWinner);
 
             responses.Add(response);
         }

@@ -1,4 +1,6 @@
-﻿namespace Bomber.Client.Models;
+﻿using Bomber.Client.Enums;
+
+namespace Bomber.Client.Models;
 
 public sealed record PlayerStateResponse(
     Guid Id,
@@ -9,4 +11,7 @@ public sealed record PlayerStateResponse(
     int BombLimit,
     int ExplosionRadius,
     float Speed,
-    bool IsAlive);
+    bool IsAlive,
+    bool IsMoving,
+    Direction MoveDirection,
+    bool IsWinner);
