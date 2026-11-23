@@ -96,7 +96,10 @@ public sealed class GameStateBroadcaster
                     player.BombLimit,
                     player.ExplosionRadius,
                     player.Speed,
-                    player.State == PlayerState.Alive));
+                    player.State == PlayerState.Alive,
+                    player.IsMoving,
+                    player.MoveDirection,
+                    player.IsWinner));
         }
 
         return responses;

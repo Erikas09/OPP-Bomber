@@ -10,6 +10,9 @@ public sealed class DebugDrawingContext : IDrawingContext
     public void BeginFrame(Graphics graphics)
     {
         _graphics = graphics;
+
+        graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+        graphics.PixelOffsetMode = PixelOffsetMode.Half;
     }
 
     public void FillRectangle(
@@ -81,6 +84,17 @@ public sealed class DebugDrawingContext : IDrawingContext
             brush,
             x,
             y);
+    }
+
+    public void DrawImage(Image image, RectangleF destination, Rectangle source)
+    {
+        Graphics graphics = GetGraphics();
+
+        graphics.DrawImage(
+            image,
+            destination,
+            source,
+            GraphicsUnit.Pixel);
     }
 
     private Graphics GetGraphics()

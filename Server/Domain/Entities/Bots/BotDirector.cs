@@ -11,7 +11,7 @@ public class BotDirector
         return builder
             .Reset()
             .SetPosition(position)
-            .SetLives(3)
+            .SetLives(1)
             .SetBombLimit(2)
             .SetExplosionRadius(3)
             .SetSpeed(120f)
@@ -24,7 +24,7 @@ public class BotDirector
         return builder
             .Reset()
             .SetPosition(position)
-            .SetLives(5)
+            .SetLives(1)
             .SetBombLimit(1)
             .SetExplosionRadius(2)
             .SetSpeed(90f)

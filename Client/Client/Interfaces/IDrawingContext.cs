@@ -21,4 +21,9 @@ public interface IDrawingContext
         Color color,
         float x,
         float y);
+
+    void DrawImage(
+        Image image,
+        RectangleF destination,
+        Rectangle source);
 }
