@@ -167,8 +167,8 @@ public class Player
         return bomb;
     }
 
-    public void PickUpPowerUp(PowerUp powerUp)
+    public bool PickUpPowerUp(PowerUp powerUp)
     {
-        powerUp.ApplyEffect(this);       
+        return powerUp.ApplyEffect(this);       
     }
 }

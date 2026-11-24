@@ -3,7 +3,7 @@ using Bomber.Domain.Players;
 
 namespace Bomber.Domain.PowerUps;
 
-public class SpeedPowerUp : PowerUp
+public sealed class SpeedPowerUp : PowerUp
 {
     public float SpeedModifier;
 
@@ -22,7 +22,7 @@ public class SpeedPowerUp : PowerUp
         GridPosition pos = new GridPosition(position_x, position_y);
         return new SpeedPowerUp(SpeedModifier, pos);
     }
-    public override void ApplyEffect(Player player)
+    public override void ApplySpecificEffect(Player player)
     {
         float speed = player.GetSpeed();
         player.SetSpeed(speed * SpeedModifier);

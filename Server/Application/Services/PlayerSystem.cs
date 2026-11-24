@@ -212,8 +212,8 @@ namespace Bomber.Application.Services
 
             if (powerUp is not null)
             {
-                player.PickUpPowerUp(powerUp);
-                _map.RemovePowerUp(playerPos);
+                if(player.PickUpPowerUp(powerUp) == true)
+                    _map.RemovePowerUp(playerPos);
 
                 // 25% chance to spawn new powerup in random location
                 if (Random.Shared.NextDouble() < 0.25)
