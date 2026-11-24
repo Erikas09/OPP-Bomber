@@ -3,6 +3,7 @@ using Bomber.Domain.Entities.Bots;
 using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
+using Bomber.Domain.Mediators;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services;
@@ -23,7 +24,10 @@ public sealed class GameFacadeFactory
         Console.WriteLine(
             $"[Flyweight] {_map.Width * _map.Height} map tiles share {MapCellFlyweightFactory.CachedCount} cell objects");
         _players = new PlayerSystem(_map);
-        _bombs = new BombSystem(_map, _players, _eventPublisher);
+
+        IBombMediator mediator = new BombMediator(_players, _map, _eventPublisher);
+        _bombs = new BombSystem(_map, mediator);
+
         BotManager.Initialize(_map, _players.AllPlayers);
     }
 
