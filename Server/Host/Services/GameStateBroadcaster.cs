@@ -46,30 +46,35 @@ public sealed class GameStateBroadcaster
     public async Task BroadcastAsync(
         CancellationToken cancellationToken = default)
     {
-        Map map = _game.GetMap();
+        GameStateResponse response;
 
-        List<MapCellResponse> cells = CreateMapCellResponses(map);
+        lock (_game.SyncRoot)
+        {
+            Map map = _game.GetMap();
 
-        List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
+            List<MapCellResponse> cells = CreateMapCellResponses(map);
 
-        List<PlayerStateResponse> players = CreatePlayerResponses();
+            List<SpawnPointResponse> spawnPoints = CreateSpawnPointResponses(map);
 
-        List<BombResponse> bombs = CreateBombResponses();
+            List<PlayerStateResponse> players = CreatePlayerResponses();
 
-        List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
+            List<BombResponse> bombs = CreateBombResponses();
 
-        List<ExplosionResponse> explosions = CreateExplosionResponses();
+            List<PowerUpResponse> powerUps = CreatePowerUpResponses(map);
 
-        GameStateResponse response =
-            new(
-                map.Width,
-                map.Height,
-                cells,
-                spawnPoints,
-                players,
-                bombs,
-                powerUps,
-                explosions);
+            List<ExplosionResponse> explosions = CreateExplosionResponses();
+
+            response =
+                new(
+                    map.Width,
+                    map.Height,
+                    cells,
+                    spawnPoints,
+                    players,
+                    bombs,
+                    powerUps,
+                    explosions);
+        }
 
         await _hub.Clients.All.SendAsync(
             "GameStateUpdated",
@@ -97,7 +102,7 @@ public sealed class GameStateBroadcaster
                     player.ExplosionRadius,
                     player.Speed,
                     player.State == PlayerState.Alive,
-                    player.IsMoving,
+                    player.IsMoving && !_game.IsPaused,
                     player.MoveDirection,
                     player.IsWinner));
         }

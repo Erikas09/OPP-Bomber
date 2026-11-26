@@ -1,5 +1,6 @@
 ﻿using Bomber.Application.Interfaces;
 using Bomber.Domain.Events;
+using System.Diagnostics;
 
 namespace Bomber.Application.Observers;
 
@@ -11,26 +12,26 @@ public sealed class GameLogObserver : IGameObserver
         switch (gameEvent)
         {
             case BombExplodedEvent bombExploded:
-                Console.WriteLine(
+                Debug.WriteLine(
                     $"Bomb {bombExploded.BombId} exploded " +
                     $"at ({bombExploded.Origin.X}, " +
                     $"{bombExploded.Origin.Y}).");
                 break;
 
             case WallDestroyedEvent wallDestroyed:
-                Console.WriteLine(
+                Debug.WriteLine(
                     $"Wall {wallDestroyed.WallId} was destroyed " +
                     $"by player {wallDestroyed.CausedByPlayerId}.");
                 break;
 
             case PlayerDamagedEvent playerDamaged:
-                Console.WriteLine(
+                Debug.WriteLine(
                     $"Player {playerDamaged.PlayerId} took damage. " +
                     $"Lives remaining: {playerDamaged.LivesRemaining}.");
                 break;
 
             case PlayerDiedEvent playerDied:
-                Console.WriteLine(
+                Debug.WriteLine(
                     $"Player {playerDied.PlayerId} died.");
                 break;
         }

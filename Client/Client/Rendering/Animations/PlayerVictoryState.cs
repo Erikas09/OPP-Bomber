@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using Bomber.Client.Models;
-using Bomber.Client.Rendering.Animations;
 
-namespace Bomber.Domain.Players
+namespace Bomber.Client.Rendering.Animations
 {
     internal class PlayerVictoryState : IAnimationState
     {

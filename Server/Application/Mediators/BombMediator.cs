@@ -8,7 +8,7 @@ using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 
-namespace Bomber.Domain.Mediators
+namespace Bomber.Application.Mediators
 {
     public class BombMediator : IBombMediator
     {

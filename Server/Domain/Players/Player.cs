@@ -10,6 +10,11 @@ public class Player
 {
     public const float PlayerSize = 30f;
 
+    private readonly int _initialLives;
+    private readonly int _initialBombLimit;
+    private readonly int _initialExplosionRadius;
+    private readonly float _initialSpeed;
+
     public Guid Id { get; }
 
     public string Name { get; private set; }
@@ -49,6 +54,11 @@ public class Player
         Name = name;
         Position = position;
 
+        _initialLives = lives;
+        _initialBombLimit = bombLimit;
+        _initialExplosionRadius = explosionRadius;
+        _initialSpeed = speed;
+
         Lives = lives;
         BombLimit = bombLimit;
         ExplosionRadius = explosionRadius;
@@ -58,6 +68,22 @@ public class Player
         Input = PlayerInput.None;
 
         OnDeath = () => { };
+    }
+
+    public void Reset(Position position)
+    {
+        Position = position;
+        Lives = _initialLives;
+        BombLimit = _initialBombLimit;
+        ExplosionRadius = _initialExplosionRadius;
+        Speed = _initialSpeed;
+        State = PlayerState.Alive;
+        Input = PlayerInput.None;
+        VelocityX = 0f;
+        VelocityY = 0f;
+        MoveDirection = Direction.Down;
+        IsMoving = false;
+        IsWinner = false;
     }
 
     public void SetInput(PlayerInput input)
@@ -169,6 +195,6 @@ public class Player
 
     public bool PickUpPowerUp(PowerUp powerUp)
     {
-        return powerUp.ApplyEffect(this);       
+        return powerUp.ApplyEffect(this);
     }
 }

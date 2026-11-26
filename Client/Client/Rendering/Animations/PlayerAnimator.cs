@@ -1,6 +1,4 @@
 ﻿using Bomber.Client.Models;
-using Bomber.Domain.Players;
-using System.Diagnostics;
 
 namespace Bomber.Client.Rendering.Animations;
 

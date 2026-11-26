@@ -50,6 +50,8 @@ public static class DependencyInjection
         services.AddSingleton<GameWorld>(sp =>
             sp.GetRequiredService<GameFacadeFactory>().CreateWorld());
 
+        services.AddSingleton<GameAdministrationService>();
+
         return services;
     }
 }

@@ -30,7 +30,7 @@ namespace Bomber.Domain.Entities.Bots
         public OnBombRequestHandler OnBombRequest;
 
 
-        private BotManager( Map map, Dictionary<Guid, Player> players)
+        private BotManager(Map map, Dictionary<Guid, Player> players)
         {
             OnBombRequest = _ => { };
             GetBombList = () => new();
@@ -54,7 +54,7 @@ namespace Bomber.Domain.Entities.Bots
             }
         }
 
-        public static void Initialize(               
+        public static void Initialize(
                 Map map,
                 Dictionary<Guid, Player> players)
         {
@@ -86,6 +86,19 @@ namespace Bomber.Domain.Entities.Bots
             return bot;
         }
 
+        public void ResetStrategies()
+        {
+            strategy_updates = 0;
+
+            foreach (Bot bot in bots.Values)
+            {
+                if (bot.Name == "Defender")
+                    bot.SetStrategy(new ExploreStrategy());
+                else
+                    bot.SetStrategy(new HuntStrategy());
+            }
+        }
+
         public void Update(float deltaTime)
         {
             strategy_updates += deltaTime;
@@ -97,14 +110,16 @@ namespace Bomber.Domain.Entities.Bots
             }
 
             foreach (var bot in bots)
-                bot.Value.Update(deltaTime);
+                if (bot.Value.State == Domain.Enums.PlayerState.Alive)
+                    bot.Value.Update(deltaTime);
 
         }
 
         void UpdateAllStrategies()
         {
             foreach (var bot in bots)
-                UpdateBotStrategy(bot.Value);
+                if (bot.Value.State == Domain.Enums.PlayerState.Alive)
+                    UpdateBotStrategy(bot.Value);
         }
 
         public void UpdateBotStrategy(Bot bot)
@@ -113,7 +128,7 @@ namespace Bomber.Domain.Entities.Bots
 
             float totalWeight = strategies.Select(s => s.Item2).Sum();
 
-            if(totalWeight == 0)
+            if (totalWeight == 0)
             {
                 bot.SetStrategy(strategies[0].Item1);
                 return;
@@ -122,10 +137,10 @@ namespace Bomber.Domain.Entities.Bots
             float random = rng.NextSingle() * totalWeight;
             float current = 0;
 
-            foreach(var s in strategies)
+            foreach (var s in strategies)
             {
                 current += s.Item2;
-                if(current >= random)
+                if (current >= random)
                 {
                     bot.SetStrategy(s.Item1);
                     return;

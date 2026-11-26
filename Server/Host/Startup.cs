@@ -1,6 +1,7 @@
 using Bomber.Application;
 using Bomber.Application.Services;
 using Bomber.Host.Hubs;
+using Bomber.Host.Interpreter;
 using Bomber.Host.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -24,6 +25,8 @@ internal static class Startup
                 sp.GetRequiredService<IHubContext<GameHub>>()));
 
         builder.Services.AddSingleton<GameLoopRunner>();
+        builder.Services.AddSingleton<ConsoleInterpreter>();
+        builder.Services.AddHostedService<GameConsoleRunner>();
 
 
         WebApplication app = builder.Build();
@@ -49,7 +52,13 @@ internal static class Startup
         {
             cancellation.Cancel();
 
-            gameLoopTask.GetAwaiter().GetResult();
+            try
+            {
+                gameLoopTask.GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+            }
         }
     }
 }

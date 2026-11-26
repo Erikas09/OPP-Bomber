@@ -9,12 +9,14 @@ public sealed class GameLoopRunner
     private const double SnapshotInterval = 1.0 / 20.0;
 
     private readonly GameWorld _world;
+    private readonly GameFacade _game;
     private readonly GameStateBroadcaster _broadcaster;
 
-    public GameLoopRunner(GameWorld world, GameStateBroadcaster broadcaster)
+    public GameLoopRunner(GameWorld world, GameStateBroadcaster broadcaster, GameFacade game)
     {
         _world = world;
         _broadcaster = broadcaster;
+        _game = game;
     }
 
     public async Task Run(CancellationToken cancellationToken)
@@ -40,7 +42,11 @@ public sealed class GameLoopRunner
 
             while (accumulator >= TickDuration)
             {
-                _world.Update((float)TickDuration);
+                lock (_game.SyncRoot)
+                {
+                    if (!_game.IsPaused)
+                        _world.Update((float)TickDuration);
+                }
 
                 accumulator -= TickDuration;
             }

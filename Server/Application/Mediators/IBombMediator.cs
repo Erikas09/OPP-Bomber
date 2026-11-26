@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Bomber.Domain.Mediators
+namespace Bomber.Application.Mediators
 {
     public interface IBombMediator
     {

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Bomber.Client.Rendering.Animations;
 using Bomber.Client.Models;
 
-namespace Bomber.Domain.Players
+namespace Bomber.Client.Rendering.Animations
 {
     internal class PlayerDeadState : IAnimationState
     {

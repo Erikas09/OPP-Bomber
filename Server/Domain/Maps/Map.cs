@@ -19,6 +19,7 @@ public sealed class Map
     // Flyweight client: each MapTile (context) holds its own position/id
     // and points to a shared MapCell flyweight.
     private readonly MapTile[,] _tiles;
+    private MapTile[,]? _initialTiles;
     private readonly List<SpawnPoint> _spawnPoints = [];
     private readonly List<PowerUp> _powerUps;
 
@@ -46,6 +47,20 @@ public sealed class Map
         _tiles = new MapTile[width, height];
 
         _powerUps = new List<PowerUp>();
+    }
+
+    public void CaptureInitialLayout()
+    {
+        _initialTiles = (MapTile[,])_tiles.Clone();
+    }
+
+    public void Reset()
+    {
+        if (_initialTiles is null)
+            throw new InvalidOperationException("Initial map layout was not captured.");
+
+        Array.Copy(_initialTiles, _tiles, _tiles.Length);
+        _powerUps.Clear();
     }
 
     public MapCell GetCell(

@@ -74,12 +74,28 @@ namespace Bomber.Application.Services
             player.OnDeath += CheckForWinner;
         }
 
-        public void RemovePlayer(Guid playerId)
+        public void RemovePlayer(Guid playerId, bool checkForWinner = true)
         {
             lock (_lock)
             {
-                _players.Remove(playerId);
-                CheckForWinner();
+                if (!_players.Remove(playerId, out Player? player))
+                    return;
+
+                player.OnDeath -= CheckForWinner;
+
+                if (checkForWinner)
+                    CheckForWinner();
+            }
+        }
+
+        public void ResetWinnerState()
+        {
+            lock (_lock)
+            {
+                matchOver = false;
+
+                foreach (Player player in _players.Values)
+                    player.IsWinner = false;
             }
         }
 
@@ -90,7 +106,7 @@ namespace Bomber.Application.Services
 
             List<Player> alivePlayers = GetAlivePlayers();
 
-            if(alivePlayers.Count == 1)
+            if (alivePlayers.Count == 1)
             {
                 alivePlayers[0].IsWinner = true;
                 matchOver = true;
@@ -212,7 +228,7 @@ namespace Bomber.Application.Services
 
             if (powerUp is not null)
             {
-                if(player.PickUpPowerUp(powerUp) == true)
+                if (player.PickUpPowerUp(powerUp) == true)
                     _map.RemovePowerUp(playerPos);
 
                 // 25% chance to spawn new powerup in random location

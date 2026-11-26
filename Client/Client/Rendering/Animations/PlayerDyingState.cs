@@ -1,8 +1,4 @@
 ﻿using Bomber.Client.Models;
-using Bomber.Domain.Players;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Bomber.Client.Rendering.Animations
 {

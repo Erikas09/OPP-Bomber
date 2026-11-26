@@ -1,4 +1,5 @@
 using Bomber.Application.Commands;
+using Bomber.Application.Mediators;
 using Bomber.Application.Publishers;
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
@@ -7,7 +8,6 @@ using Bomber.Domain.Events;
 using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
-using Bomber.Domain.Mediators;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services
@@ -20,6 +20,8 @@ namespace Bomber.Application.Services
         private readonly Dictionary<Guid, IBomb> _bombs = [];
         private readonly Dictionary<Guid, Explosion> _explosions = [];
         private readonly List<PlaceBombCommand> _commands = [];
+        private readonly Dictionary<Guid, double> _bombAges = [];
+        private readonly Dictionary<Guid, double> _explosionAges = [];
 
         readonly Map _map;
         readonly IBombMediator _mediator;
@@ -32,38 +34,69 @@ namespace Bomber.Application.Services
 
         public void Update(float deltaTime)
         {
-            List<IBomb> bombs = new(_bombs.Values);
-
-            foreach (var bomb in bombs)
-                UpdateBomb(bomb);
-
             List<Explosion> explosions = new(_explosions.Values);
 
-            foreach(var explosion in explosions)
-                UpdateExplosion(explosion);
+            foreach (Explosion explosion in explosions)
+                UpdateExplosion(explosion, deltaTime);
 
+            List<IBomb> bombs = new(_bombs.Values);
+
+            foreach (IBomb bomb in bombs)
+                UpdateBomb(bomb, deltaTime);
         }
 
-        void UpdateBomb(IBomb bomb)
+        void UpdateBomb(IBomb bomb, float deltaTime)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            _bombAges[bomb.Id] += deltaTime;
+            DateTimeOffset now = bomb.PlacedAt.AddSeconds(_bombAges[bomb.Id]);
 
             if (bomb.ShouldExplode(now))
                 ExplodeBomb(bomb);
         }
 
-        void UpdateExplosion(Explosion explosion)
+        void UpdateExplosion(Explosion explosion, float deltaTime)
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            _explosionAges[explosion.Id] += deltaTime;
+            DateTimeOffset now = explosion.CreatedAt.AddSeconds(_explosionAges[explosion.Id]);
 
             if (explosion.IsExpired(now))
+            {
                 _explosions.Remove(explosion.Id);
+                _explosionAges.Remove(explosion.Id);
+            }
+        }
+
+        public void Reset()
+        {
+            _bombs.Clear();
+            _explosions.Clear();
+            _commands.Clear();
+            _bombAges.Clear();
+            _explosionAges.Clear();
+        }
+
+        public void RemovePlayerBombs(Guid playerId)
+        {
+            List<Guid> bombIds = [.. _bombs.Values.Where(b => b.OwnerId == playerId).Select(b => b.Id)];
+
+            foreach (Guid bombId in bombIds)
+                RemoveBomb(bombId);
+
+            List<Guid> explosionIds = [.. _explosions.Values.Where(e => e.OwnerId == playerId).Select(e => e.Id)];
+
+            foreach (Guid explosionId in explosionIds)
+            {
+                _explosions.Remove(explosionId);
+                _explosionAges.Remove(explosionId);
+            }
+
+            _commands.RemoveAll(c => c.GetPlayerId() == playerId);
         }
 
         public bool PlaceBomb(Player player, out IBomb? bomb)
         {
             bomb = null;
-            
+
             if (player.State == PlayerState.Dead)
                 return false;
 
@@ -86,6 +119,7 @@ namespace Bomber.Application.Services
             bomb = player.CreateDecoratedBomb(Guid.NewGuid(), position);
 
             _bombs.Add(bomb.Id, bomb);
+            _bombAges.Add(bomb.Id, 0);
 
             return true;
         }
@@ -130,6 +164,7 @@ namespace Bomber.Application.Services
                 return false;
 
             _bombs.Add(decoratedBomb.Id, decoratedBomb);
+            _bombAges.Add(decoratedBomb.Id, 0);
             return true;
         }
 
@@ -141,6 +176,7 @@ namespace Bomber.Application.Services
                 return false;
 
             _bombs.Remove(bombId);
+            _bombAges.Remove(bombId);
             return true;
         }
 
@@ -150,6 +186,7 @@ namespace Bomber.Application.Services
             List<GridPosition> affectedCells;
 
             _bombs.Remove(bomb.Id);
+            _bombAges.Remove(bomb.Id);
 
             // Decorator-aware: uses bomb.IsPiercing to decide wall behavior
             affectedCells = ComputeExplosionCells(bomb.Position, bomb.Radius, bomb.IsPiercing);
@@ -166,6 +203,7 @@ namespace Bomber.Application.Services
                 ExplosionDurationSeconds);
 
             _explosions.Add(explosion.Id, explosion);
+            _explosionAges.Add(explosion.Id, 0);
 
             _mediator.HandleExplosion(bomb, explosion, affectedCells);
 
@@ -219,9 +257,9 @@ namespace Bomber.Application.Services
             return cells;
         }
 
-        public List<IBomb> GetBombsToExplode(DateTimeOffset now)
+        public List<IBomb> GetBombsToExplode()
         {
-            return [.. _bombs.Values.Where(b => b.ShouldExplode(now))];
+            return [.. _bombs.Values.Where(b => b.ShouldExplode(b.PlacedAt.AddSeconds(_bombAges[b.Id])))];
         }
 
         public List<IBomb> GetBombs()

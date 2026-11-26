@@ -65,7 +65,7 @@ public class DefenderBotBuilder : IBotBuilder
     {
         Bot bot = new Bot(
             Guid.NewGuid(),
-            "Hunter",
+            "Defender",
             position,
             lives,
             bombLimit,
