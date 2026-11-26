@@ -1,9 +1,10 @@
+using Bomber.Client.Interfaces;
 using Bomber.Client.Models;
 using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Bomber.Client.Network;
 
-public sealed class GameServerConnection
+public sealed class GameServerConnection : IGameServerConnection
 {
     private readonly HubConnection _connection;
 
