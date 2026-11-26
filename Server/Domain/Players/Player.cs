@@ -1,6 +1,7 @@
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
+using Bomber.Domain.Game;
 using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Players;
@@ -28,6 +29,12 @@ public class Player
     public float VelocityX { get; set; }
     public float VelocityY { get; set; }
 
+    public Direction MoveDirection { get; private set; } = Direction.Down;
+    public bool IsMoving { get; private set; } = false;
+    public bool IsWinner { get; set; } = false;
+
+    public event Action OnDeath;
+
     public Player(
         Guid id,
         string name,
@@ -37,6 +44,7 @@ public class Player
         int explosionRadius,
         float speed)
     {
+
         Id = id;
         Name = name;
         Position = position;
@@ -48,11 +56,25 @@ public class Player
 
         State = PlayerState.Alive;
         Input = PlayerInput.None;
+
+        OnDeath = () => { };
     }
 
     public void SetInput(PlayerInput input)
     {
         Input = input;
+        IsMoving = true;
+
+        if (input.Up)
+            MoveDirection = Direction.Up;
+        else if (input.Down)
+            MoveDirection = Direction.Down;
+        else if (input.Left)
+            MoveDirection = Direction.Left;
+        else if (input.Right)
+            MoveDirection = Direction.Right;
+        else
+            IsMoving = false;
     }
 
     public void MoveTo(Position position)
@@ -73,6 +95,7 @@ public class Player
         {
             Lives = 0;
             State = PlayerState.Dead;
+            OnDeath?.Invoke();
         }
     }
 
@@ -100,6 +123,7 @@ public class Player
     {
         return this.BombLimit;
     }
+
     public bool HasPiercingBombs { get; set; }
     public bool HasMegaBlastBombs { get; set; }
     public bool HasRemoteDetonationBombs { get; set; }
@@ -143,8 +167,8 @@ public class Player
         return bomb;
     }
 
-    public void PickUpPowerUp(PowerUp powerUp)
+    public bool PickUpPowerUp(PowerUp powerUp)
     {
-        powerUp.ApplyEffect(this);       
+        return powerUp.ApplyEffect(this);       
     }
 }

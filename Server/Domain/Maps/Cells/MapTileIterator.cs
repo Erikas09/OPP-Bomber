@@ -4,14 +4,14 @@ using Bomber.Domain.Maps;
 
 namespace Bomber.Domain.Maps.Cells;
 
-public sealed class MapCellIterator : IIterator<MapTile>
+public sealed class MapTileIterator : IIterator<MapTile>
 {
     private readonly Map _map;
 
     private int _x;
     private int _y;
 
-    public MapCellIterator(Map map)
+    public MapTileIterator(Map map)
     {
         _map = map;
     }
@@ -24,7 +24,7 @@ public sealed class MapCellIterator : IIterator<MapTile>
     public MapTile Next()
     {
         if (!HasNext())
-            throw new InvalidOperationException("No more map cells.");
+            throw new InvalidOperationException("No more map tiles.");
 
         GridPosition position = new(_x, _y);
         MapTile tile = _map.GetTile(position);

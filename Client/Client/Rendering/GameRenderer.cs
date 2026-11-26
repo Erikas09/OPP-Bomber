@@ -1,5 +1,6 @@
 ﻿using Bomber.Client.Interfaces;
 using Bomber.Client.Models;
+using Bomber.Client.Rendering.Animations;
 
 namespace Bomber.Client.Rendering;
 
@@ -13,12 +14,15 @@ public sealed class GameRenderer
     private readonly PowerUpRenderer _powerUpRenderer;
     private readonly ExplosionRenderer _explosionRenderer;
 
+    AnimationManager _animationManager;
+
     public GameRenderer(IDrawingContext drawingContext)
     {
+        _animationManager = new AnimationManager();
         _drawingContext = drawingContext;
 
         _mapRenderer = new MapRenderer(drawingContext);
-        _playerRenderer = new PlayerRenderer(drawingContext);
+        _playerRenderer = new PlayerRenderer(_animationManager, drawingContext);
         _bombRenderer = new BombRenderer(drawingContext);
         _powerUpRenderer = new PowerUpRenderer(drawingContext);
         _explosionRenderer = new ExplosionRenderer(drawingContext);
@@ -29,6 +33,9 @@ public sealed class GameRenderer
         ClientGameState gameState,
         Guid? localPlayerId)
     {
+
+        _animationManager.UpdateData(gameState.Players);
+
         _drawingContext.BeginFrame(graphics);
 
         _mapRenderer.Draw(gameState.Cells);

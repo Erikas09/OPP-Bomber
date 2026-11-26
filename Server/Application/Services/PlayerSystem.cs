@@ -21,6 +21,8 @@ namespace Bomber.Application.Services
         public Dictionary<Guid, Player> AllPlayers => _players;
         public int PlayerCount => _players.Count;
 
+        bool matchOver = false;
+
         public PlayerSystem(Map map)
         {
             _map = map;
@@ -62,12 +64,14 @@ namespace Bomber.Application.Services
                     speed: 120f);
 
                 _players.Add(playerId, player);
+                player.OnDeath += CheckForWinner;
             }
         }
 
         public void AddPlayer(Player player)
         {
             _players.Add(player.Id, player);
+            player.OnDeath += CheckForWinner;
         }
 
         public void RemovePlayer(Guid playerId)
@@ -75,7 +79,27 @@ namespace Bomber.Application.Services
             lock (_lock)
             {
                 _players.Remove(playerId);
+                CheckForWinner();
             }
+        }
+
+        void CheckForWinner()
+        {
+            if (matchOver)
+                return;
+
+            List<Player> alivePlayers = GetAlivePlayers();
+
+            if(alivePlayers.Count == 1)
+            {
+                alivePlayers[0].IsWinner = true;
+                matchOver = true;
+            }
+        }
+
+        List<Player> GetAlivePlayers()
+        {
+            return _players.Where(p => p.Value.State == PlayerState.Alive).Select(p => p.Value).ToList();
         }
 
         public void SetPlayerInput(Guid playerId, PlayerInput input)
@@ -104,10 +128,8 @@ namespace Bomber.Application.Services
             {
                 Player player = iterator.Next();
 
-                if (player.State == PlayerState.Dead)
-                    continue;
-
-                UpdatePlayer(player, player.Input, deltaTime);
+                if (player.State == PlayerState.Alive && !matchOver)
+                    UpdatePlayer(player, player.Input, deltaTime);
             }
         }
 
@@ -190,8 +212,8 @@ namespace Bomber.Application.Services
 
             if (powerUp is not null)
             {
-                player.PickUpPowerUp(powerUp);
-                _map.RemovePowerUp(playerPos);
+                if(player.PickUpPowerUp(powerUp) == true)
+                    _map.RemovePowerUp(playerPos);
 
                 // 25% chance to spawn new powerup in random location
                 if (Random.Shared.NextDouble() < 0.25)

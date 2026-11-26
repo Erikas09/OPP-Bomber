@@ -3,7 +3,7 @@ using Bomber.Domain.Players;
 
 namespace Bomber.Domain.PowerUps;
 
-public class ExtraBombPowerUp : PowerUp
+public sealed class ExtraBombPowerUp : PowerUp
 {
     public int BombCount;
 
@@ -23,7 +23,7 @@ public class ExtraBombPowerUp : PowerUp
         return new ExtraBombPowerUp(BombCount, pos);
     }
 
-    public override void ApplyEffect(Player player)
+    public override void ApplySpecificEffect(Player player)
     {
         int bombLimit = player.GetBombLimit();
         player.SetBombLimit(bombLimit + BombCount);

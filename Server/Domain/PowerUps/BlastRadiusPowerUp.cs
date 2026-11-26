@@ -3,7 +3,7 @@ using Bomber.Domain.Players;
 
 namespace Bomber.Domain.PowerUps;
 
-public class BlastRadiusPowerUp : PowerUp
+public sealed class BlastRadiusPowerUp : PowerUp
 {
     int BlastRadius;
     public BlastRadiusPowerUp() {}
@@ -21,7 +21,7 @@ public class BlastRadiusPowerUp : PowerUp
         GridPosition pos = new GridPosition(position_x, position_y);
         return new BlastRadiusPowerUp(BlastRadius, pos);
     }
-    public override void ApplyEffect(Player player)
+    public override void ApplySpecificEffect(Player player)
     {
         int radius = player.GetExplosionRadius();
         player.SetExplosionRadius(radius + BlastRadius);

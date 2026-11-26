@@ -7,6 +7,7 @@ using Bomber.Domain.Events;
 using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
+using Bomber.Domain.Mediators;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services
@@ -20,15 +21,13 @@ namespace Bomber.Application.Services
         private readonly Dictionary<Guid, Explosion> _explosions = [];
         private readonly List<PlaceBombCommand> _commands = [];
 
-        readonly PlayerSystem _players;
         readonly Map _map;
-        readonly GameEventPublisher _eventPublisher;
+        readonly IBombMediator _mediator;
 
-        public BombSystem(Map map, PlayerSystem players, GameEventPublisher eventPublisher)
+        public BombSystem(Map map, IBombMediator mediator)
         {
             _map = map;
-            _players = players;
-            _eventPublisher = eventPublisher;
+            _mediator = mediator;
         }
 
         public void Update(float deltaTime)
@@ -168,80 +167,9 @@ namespace Bomber.Application.Services
 
             _explosions.Add(explosion.Id, explosion);
 
-            events.Add(
-                new BombExplodedEvent(
-                    Guid.NewGuid(),
-                    occurredAt,
-                    bomb.Id,
-                    bomb.OwnerId,
-                    bomb.Position,
-                    [.. affectedCells]));
-
-            foreach (GridPosition cell in affectedCells)
-            {
-                MapCell mapCell = _map.GetCell(cell);
-
-                if (mapCell is not DestructibleWall)
-                    continue;
-
-                Guid wallId = _map.GetTile(cell).Id;
-
-                _map.DestroyWall(cell);
-
-                events.Add(
-                    new WallDestroyedEvent(
-                        Guid.NewGuid(),
-                        occurredAt,
-                        wallId,
-                        bomb.Id,
-                        bomb.OwnerId,
-                        cell));
-            }
-
-            DamagePlayers(bomb, explosion, events);
-
-            foreach (GameEvent gameEvent in events)
-                _eventPublisher.Notify(gameEvent);
+            _mediator.HandleExplosion(bomb, explosion, affectedCells);
 
             return affectedCells;
-        }
-
-        void DamagePlayers(IBomb bomb, Explosion explosion, List<GameEvent> events)
-        {
-            foreach (Player player in _players.AllPlayers.Values)
-            {
-                if (player.State == PlayerState.Dead)
-                    continue;
-
-                GridPosition playerCell = Map.WorldToGridPosition(player.Position, Player.PlayerSize);
-
-                if (!explosion.Contains(playerCell))
-                    continue;
-
-                int livesBefore = player.Lives;
-                PlayerState stateBefore = player.State;
-
-                player.TakeDamage();
-
-                if (player.Lives < livesBefore)
-                    events.Add(
-                        new PlayerDamagedEvent(
-                            Guid.NewGuid(),
-                            explosion.CreatedAt,
-                            player.Id,
-                            bomb.Id,
-                            bomb.OwnerId,
-                            player.Lives));
-
-                if (stateBefore != PlayerState.Dead && player.State == PlayerState.Dead)
-                    events.Add(
-                        new PlayerDiedEvent(
-                            Guid.NewGuid(),
-                            explosion.CreatedAt,
-                            player.Id,
-                            bomb.Id,
-                            bomb.OwnerId));
-            }
         }
 
         /// <summary>
