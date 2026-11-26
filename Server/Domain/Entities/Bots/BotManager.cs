@@ -1,13 +1,12 @@
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Builders;
 using Bomber.Domain.Common;
-using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Players;
 
 namespace Bomber.Domain.Entities.Bots
 {
-    public sealed class BotManager : IGameObject
+    public sealed class BotManager
     {
         private static BotManager? instance;
         private static readonly object _lock = new();

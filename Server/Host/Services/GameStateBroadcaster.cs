@@ -204,6 +204,12 @@ public sealed class GameStateBroadcaster
         if (cell is IceIndestructibleWall)
             return MapCellType.IceIndestructibleWall;
 
+        if (cell is DestructibleWallSource)
+            return MapCellType.DestructibleWallSource;
+
+        if (cell is IceDestructibleWallSource)
+            return MapCellType.IceDestructibleWallSource;
+
         return MapCellType.IceFloor;
     }
 

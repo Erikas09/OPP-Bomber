@@ -44,7 +44,7 @@ namespace Bomber.Application.Mediators
             {
                 MapCell mapCell = _map.GetCell(cell);
 
-                if (mapCell is not DestructibleWall)
+                if (mapCell is not IDestructible)
                     continue;
 
                 Guid wallId = _map.GetTile(cell).Id;

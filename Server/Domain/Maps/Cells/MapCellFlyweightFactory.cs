@@ -14,6 +14,9 @@ public static class MapCellFlyweightFactory
     {
         lock (_lock)
         {
+            if (typeof(T).GetInterfaces().Contains(typeof(IDestructible)))
+                return new T();
+
             if (!_cache.TryGetValue(typeof(T), out MapCell? cell))
             {
                 cell = new T();

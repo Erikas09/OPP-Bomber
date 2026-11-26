@@ -1,7 +1,6 @@
 ﻿using Bomber.Application.Mediators;
 using Bomber.Application.Publishers;
 using Bomber.Domain.Entities.Bots;
-using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
@@ -40,14 +39,5 @@ public sealed class GameFacadeFactory
         game.SetGame();
 
         return game;
-    }
-
-    public GameWorld CreateWorld()
-    {
-        GameWorld world = new();
-        world.Add(BotManager.Instance);
-        world.Add(_players);
-        world.Add(_bombs);
-        return world;
     }
 }

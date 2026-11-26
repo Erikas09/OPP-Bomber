@@ -91,7 +91,7 @@ namespace Bomber.Domain.Entities.Bots
             foreach((int dx, int dy) in directions)
             {
                 GridPosition newPos = new(position.X + dx, position.Y + dy);
-                if (Manager.GameMap.IsInsideMap(newPos) && Manager.GameMap.GetCell(newPos) is DestructibleWall)
+                if (Manager.GameMap.IsInsideMap(newPos) && Manager.GameMap.GetCell(newPos) is IDestructible)
                     return true;
             }
 

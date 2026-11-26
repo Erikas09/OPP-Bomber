@@ -18,4 +18,9 @@ public class ClassicMapFactory : IMapFactory
     {
         return MapCellFlyweightFactory.Get<ClassicIndestructibleWall>();
     }
+
+    public DestructibleWallSource CreateDestructibleWallSource()
+    {
+        return MapCellFlyweightFactory.Get<ClassicDestructibleWallSource>();
+    }
 }

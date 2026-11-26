@@ -1,7 +1,6 @@
 using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
-using Bomber.Domain.Game;
 using Bomber.Domain.PowerUps;
 
 namespace Bomber.Domain.Players;

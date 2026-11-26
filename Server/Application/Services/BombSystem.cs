@@ -5,14 +5,13 @@ using Bomber.Domain.Bombs;
 using Bomber.Domain.Common;
 using Bomber.Domain.Enums;
 using Bomber.Domain.Events;
-using Bomber.Domain.Game;
 using Bomber.Domain.Maps;
 using Bomber.Domain.Maps.Cells;
 using Bomber.Domain.Players;
 
 namespace Bomber.Application.Services
 {
-    public sealed class BombSystem : IGameObject
+    public sealed class BombSystem
     {
         const float ExplosionDurationSeconds = 0.5f;
 
@@ -249,7 +248,7 @@ namespace Bomber.Application.Services
 
                     // Piercing bombs go through destructible walls;
                     // normal bombs stop after hitting one
-                    if (cell is DestructibleWall && !piercing)
+                    if (cell is IDestructible && !piercing)
                         break;
                 }
             }

@@ -8,4 +8,6 @@ public enum MapCellType
     IceFloor = 4,
     IceDestructibleWall = 5,
     IceIndestructibleWall = 6,
+    DestructibleWallSource = 7,
+    IceDestructibleWallSource = 8
 }

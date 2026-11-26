@@ -10,5 +10,6 @@ namespace Bomber.Domain.Factories
         Floor CreateFloor();
         IndestructibleWall CreateIndestructibleWall();
         DestructibleWall CreateDestructibleWall();
+        DestructibleWallSource CreateDestructibleWallSource();
     }
 }

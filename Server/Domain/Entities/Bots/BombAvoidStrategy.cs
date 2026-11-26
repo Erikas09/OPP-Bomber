@@ -108,7 +108,7 @@ namespace Bomber.Domain.Entities.Bots
 
                     cells.Add(current);
 
-                    if (cell is DestructibleWall)
+                    if (cell is IDestructible)
                         break;
                 }
             }

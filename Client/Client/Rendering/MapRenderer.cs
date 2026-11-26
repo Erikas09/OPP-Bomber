@@ -38,9 +38,11 @@ public sealed class MapRenderer : Renderer
             MapCellType.Floor => Color.LightGray,
             MapCellType.DestructibleWall => Color.SaddleBrown,
             MapCellType.IndestructibleWall => Color.DarkGray,
+            MapCellType.DestructibleWallSource => Color.Purple,
             MapCellType.IceFloor => Color.LightSkyBlue,
             MapCellType.IceDestructibleWall => Color.SlateBlue,
             MapCellType.IceIndestructibleWall => Color.DodgerBlue,
+            MapCellType.IceDestructibleWallSource => Color.Purple,
             _ => Color.Magenta,
         };
     }

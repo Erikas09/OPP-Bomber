@@ -18,4 +18,9 @@ public class IceMapFactory : IMapFactory
     {
         return MapCellFlyweightFactory.Get<IceIndestructibleWall>();
     }
+
+    public DestructibleWallSource CreateDestructibleWallSource()
+    {
+        return MapCellFlyweightFactory.Get<IceDestructibleWallSource>();
+    }
 }

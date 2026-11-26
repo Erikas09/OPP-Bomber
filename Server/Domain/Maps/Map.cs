@@ -81,6 +81,20 @@ public sealed class Map
         return _tiles[position.X, position.Y];
     }
 
+    public GridPosition FindPosition(MapCell cell)
+    {
+        IIterator<MapTile> iterator = CreateMapTileIterator();
+
+        while (iterator.HasNext())
+        {
+            MapTile tile = iterator.Next();
+            if (tile.Cell == cell)
+                return tile.Position;
+        }
+
+        return new(-1, -1);
+    }
+
     public void SetCell(GridPosition position, MapCell cell)
     {
         if (!IsInsideMap(position))
@@ -259,36 +273,15 @@ public sealed class Map
         }
     }
 
-    public void DestroyWall(
-        GridPosition position)
+    public void DestroyWall(GridPosition position)
     {
         if (!IsInsideMap(position))
             return;
 
         MapCell cell = GetCell(position);
 
-        if (cell is not DestructibleWall)
-            return;
-
-        if (cell is ClassicDestructibleWall)
-            SetCell(position, MapCellFlyweightFactory.Get<ClassicFloor>());
-        else
-            SetCell(position, MapCellFlyweightFactory.Get<IceFloor>());
-
-        int num = Random.Shared.Next(1, 4);
-
-        PowerUpType type =
-            num switch
-            {
-                1 => PowerUpType.ExtraBomb,
-                2 => PowerUpType.BlastRadius,
-                3 => PowerUpType.Speed,
-                _ => throw new InvalidOperationException(),
-            };
-
-        PowerUp powerUp = PowerUpFactory.CreatePowerUp(type, position);
-
-        _powerUps.Add(powerUp);
+        if (cell is IDestructible destructible)
+            destructible.Destroy(this);
     }
 
     public static GridPosition WorldToGridPosition(Position position, float size)
@@ -351,6 +344,8 @@ public sealed class Map
         map.SetCell(7, 5, factory.CreateDestructibleWall());
         map.SetCell(9, 7, factory.CreateDestructibleWall());
 
+        CreateWallSource(map, factory);
+
         map.AddSpawnPoint(
             new SpawnPoint(
                 Guid.NewGuid(),
@@ -382,5 +377,21 @@ public sealed class Map
                 3));
 
         return map;
+    }
+
+    static void CreateWallSource(Map map, IMapFactory factory)
+    {
+        DestructibleWallSource source = factory.CreateDestructibleWallSource();
+
+        map.SetCell(5, 9, source);
+
+        (int, int)[] positions = [(5, 8), (5, 10), (5, 11)];
+
+        foreach(var pos in positions)
+        {
+            DestructibleWall wall = factory.CreateDestructibleWall();
+            map.SetCell(pos.Item1, pos.Item2, wall);
+            source.AddWall(wall);
+        }
     }
 }
